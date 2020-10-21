@@ -3,7 +3,6 @@ makefile
 files.zip
 debug
 release
-lib
 obj
 .vscode
 build
