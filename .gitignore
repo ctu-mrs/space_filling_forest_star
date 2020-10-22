@@ -1,7 +1,5 @@
 output
-files.zip
 debug
 release
 obj
 .vscode
-build

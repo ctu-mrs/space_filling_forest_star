@@ -1,13 +1,11 @@
 TARGET := main
-ZIP := files.zip
-SOURCES := $(wildcard src/*.cpp)
-SOURCES := $(SOURCES:src/%=%)
-FILES := $(wildcard src/*.cpp) $(wildcard src/*.h)
-OBJECTS := $(patsubst %.c,%.o, $(patsubst %.cpp,%.o,$(SOURCES)))
-DEP := test.xml
 OBJDIR := obj
 DBGDIR := debug
 RELDIR := release
+
+SOURCES := $(wildcard src/*.cpp)
+SOURCES := $(SOURCES:src/%=%)
+OBJECTS := $(patsubst %.c,%.o, $(patsubst %.cpp,%.o,$(SOURCES)))
 
 INCLUDE := -I. -I./lib/rapid-2.01 -I./lib/ann/ann/include -I./lib/rapidxml
 LIBPATH := -L./lib/ -L./lib/ann/ -L./lib/flann/ -L./lib/rapid-2.01 -L./lib/rapidxml
@@ -18,25 +16,21 @@ CXX := g++
 
 DBGEXE := $(DBGDIR)/$(TARGET)
 DBGOBJS := $(addprefix $(OBJDIR)/, $(addprefix $(DBGDIR)/, $(OBJECTS)))
-#DBGFLAGS := $(CXXFLAGS) -g -fsanitize=address -O0 -fno-omit-frame-pointer
 DBGFLAGS := $(CXXFLAGS) -g -O0
 
 RELEXE := $(RELDIR)/$(TARGET)
 RELOBJS := $(addprefix $(OBJDIR)/, $(addprefix $(RELDIR)/, $(OBJECTS)))
 RELFLAGS := $(CXXFLAGS) -O3
 
-.PHONY: all clean debug release prep rapid flann zip
+.PHONY: all clean debug release prep rapid flann install
 
-all: release zip
+all: release
 
 ############ DEBUG ###############
 debug: prep $(DBGEXE)
 
 $(DBGEXE): $(DBGOBJS)
 	$(CXX) $(DBGFLAGS) $(INCLUDE) -o $(DBGEXE) $^ $(LIBPATH) $(LIBS)
-ifneq ("$(wildcard test.xml)", "")
-	@cp $(DEP) $(DBGDIR)/$(DEP)
-endif
 
 $(OBJDIR)/$(DBGDIR)/%.o: src/%.cpp
 	$(CXX) $(DBGFLAGS) $(INCLUDE) -c $< -o $@
@@ -46,21 +40,20 @@ release: prep $(RELEXE)
 
 $(RELEXE): $(RELOBJS)
 	$(CXX) $(RELFLAGS) $(INCLUDE) -o $(RELEXE) $^ $(LIBPATH) $(LIBS)
-ifneq ("$(wildcard test.xml)", "")
-	@cp $(DEP) $(RELDIR)/$(DEP)
-endif
 
 $(OBJDIR)/$(RELDIR)/%.o: src/%.cpp
 	$(CXX) $(RELFLAGS) $(INCLUDE) -c $< -o $@
 
 ############# COMMON ##############	
 prep:
-	@echo "Creating all dirs.."
+	@echo "Creating directories.."
 	@mkdir -p $(OBJDIR)
 	@mkdir -p $(OBJDIR)/$(DBGDIR)
 	@mkdir -p $(OBJDIR)/$(RELDIR)
 	@mkdir -p $(DBGDIR)
 	@mkdir -p $(RELDIR)
+
+install: rapid flann release
 
 rapid:
 	@echo "Installing RAPID..."
@@ -69,9 +62,6 @@ rapid:
 flann:
 	@echo "Installing FLANN..."
 	@cd ./lib/flann; mkdir build; cd build; cmake .. -DCMAKE_INSTALL_PREFIX=../install; make -j4; make install
-
-zip:
-	@zip -u $(ZIP) $(FILES) makefile
 
 clean:
 	@echo "Cleaning..."

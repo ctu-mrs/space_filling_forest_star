@@ -1,0 +1,2 @@
+# RAPID dependency #
+Although the RAPID library is not included due to its different terms and conditions, it is essential for this project. The library is free to use for non-commercial projects and can be requested at http://gamma.cs.unc.edu/OBB/. 
