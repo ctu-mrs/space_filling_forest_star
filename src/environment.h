@@ -194,11 +194,13 @@ void Obstacle<T>::ParseMapFile(const std::string fileName) {
 
 template <class T>
 void Obstacle<T>::addPoint(int objId, T coords[3]) {
-  this->facePoints.emplace_back(coords[0], coords[1]); // omit z = third coordinate
+  this->facePoints.emplace_back(coords[0], coords[1], coords[2]);
   localRange.minX = MIN(localRange.minX, coords[0]);
   localRange.maxX = MAX(localRange.maxX, coords[0]);
   localRange.minY = MIN(localRange.minY, coords[1]);
   localRange.maxY = MAX(localRange.maxY, coords[1]);
+  localRange.minZ = MIN(localRange.minZ, coords[2]);
+  localRange.maxZ = MAX(localRange.maxZ, coords[2]);
 }
 
 template <class T>

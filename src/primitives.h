@@ -80,18 +80,18 @@ class Point {
 
     }
 
-    Point<T>(T x, T y) : coords{x, y, 0} {
+    Point<T>(T x, T y, T z) : coords{x, y, z} {
 
     }
 
     Point<T>(const std::string &s) {
-      std::regex r("\\[(\\-?[\\d.]+);\\s*(\\-?[\\d.]+)\\]");
+      std::regex r("\\[(\\-?[\\d.]+);\\s*(\\-?[\\d.]+);\\s*(\\-?[\\d.]+)\\]");
       std::smatch m;
       std::regex_search(s, m, r);
-      if (m.size() != 3) {
+      if (m.size() != 4) {
         throw std::invalid_argument("Unknown format of point");
       }
-      for (int i{0}; i < 2; ++i) {
+      for (int i{0}; i < 3; ++i) {
         coords[i] = std::stod(m[i + 1]);
       }
     }
@@ -114,9 +114,14 @@ class Point {
       return coords[1];
     }
 
-    void set(T x, T y) {
+    T z() const {
+      return coords[2];
+    }
+
+    void set(T x, T y, T z) {
       coords[0] = x;
       coords[1] = y;
+      coords[2] = z;
     }
 
     const T* get() const {
@@ -124,7 +129,7 @@ class Point {
     }
 
     void setPosition(unsigned int pos, T val) {
-      if (pos > 1) {
+      if (pos > 2) {
         return;
       } 
       coords[pos] = val;
@@ -135,7 +140,7 @@ class Point {
     }
 
     const T operator[](int i) const {
-      if (i < 2) {
+      if (i < 3) {
         return coords[i];
       } else {
         return 1;
@@ -143,27 +148,28 @@ class Point {
     }
 
     inline void operator+=(const Vector<T> &translate) {
-      for (int i{0}; i < 2; ++i) {
+      for (int i{0}; i < 3; ++i) {
         coords[i] += translate[i];
       }
     }
 
     friend bool operator==(const Point<T> &p1, const Point<T> &p2) {
-      return p1.x() == p2.x() && p1.y() == p2.y();
+      return p1.x() == p2.x() && p1.y() == p2.y() && p1.z() == p2.z();
     }
 
     friend bool operator!=(const Point<T> &p1, const Point<T> &p2) {
-      return p1.x() != p2.x() || p1.y() != p2.y();
+      return p1.x() != p2.x() || p1.y() != p2.y() || p1.z() != p2.z();
     }
 
     friend bool operator<(const Point<T> &p1, const Point<T> &p2) {
       return p1.x() < p2.x() ||
-            (p1.x() == p2.x() && p1.y() < p2.y());
+            (p1.x() == p2.x() && p1.y() < p2.y()) ||
+            (p1.x() == p2.x() && p1.y() == p2.y() && p1.z() < p2.z());
     }
 
     T distance(Point<T> &other) {
       T sum{0};
-      for (int i{0}; i<2; ++i) {
+      for (int i{0}; i < 3; ++i) {
         T diff{coords[i] - other[i]};
         sum += diff * diff;
       }
@@ -175,7 +181,7 @@ class Point {
       Vector<T> direction(*this, other);
       Point <T> retVal;
 
-      for (int i{0}; i < 2; ++i) {
+      for (int i{0}; i < 3; ++i) {
         retVal.setPosition(i, coords[i] + direction[i] * (dist / realDist));
       }
       return retVal;
@@ -187,7 +193,7 @@ class Point {
 
 template <class T>
 std::ostream& operator<<(std::ostream &out, const Point<T> &p) {
-  return out << p.x() << DELIMITER_OUT << p.y();
+  return out << p.x() << DELIMITER_OUT << p.y() << DELIMITER_OUT << p.z();
 }
 
 template <class T>
@@ -196,14 +202,14 @@ class Vector {
   Vector() : coords{0, 0, 0} {
   }
 
-  Vector(T x, T y) : coords{x, y, 0} {
+  Vector(T x, T y, T z) : coords{x, y, z} {
   }
 
-  Vector(Point<T> p) : coords{p.x(), p.y(), 0} {
+  Vector(Point<T> p) : coords{p.x(), p.y(), p.z()} {
   }
 
   Vector(Point<T> p1, Point<T> p2) {
-    for (int i{0}; i < 2; ++i) {
+    for (int i{0}; i < 3; ++i) {
       coords[i] = p2[i] - p1[i];
     }
   }
@@ -217,34 +223,35 @@ class Vector {
   }
 
   friend T operator*(Vector<T> v1, Vector<T> v2) {
-    return v1[0] * v2[0] + v1[1] * v2[1];
+    return v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2];
   }
 
   friend Vector<T> operator|(Vector<T> v1, Vector<T> v2) {
-    T cache[2];
+    T  cache[3];
     cache[0] = v1[1] * v2[2] - v1[2] * v2[1];
     cache[1] = v1[2] * v2[0] - v1[0] * v2[2];
-    
-    Vector<T> retVal{cache[0], cache[1]};
+    cache[2] = v1[0] * v2[1] - v1[1] * v2[0];
+
+    Vector<T> retVal{cache[0], cache[1], cache[2]};
     return retVal;
   }
 
   friend Vector<T> operator-(const Vector<T> v1, const Vector<T> v2) {
-    return Vector(v1[0] - v2[0], v1[1] - v2[1]);
+    return Vector(v1[0] - v2[0], v1[1] - v2[1], v1[2] - v2[2]);
   }
 
   friend Vector<T> operator+(const Vector<T> v1, const Vector<T> v2) {
-    return Vector(v2[0] + v1[0], v2[1] + v1[1]);
+    return Vector(v2[0] + v1[0], v2[1] + v1[1], v2[2] + v1[2]);
   }
 
   inline void operator+=(const Vector<T> &v) {
-    for (int i{0}; i < 2; ++i) {
+    for (int i{0}; i < 3; ++i) {
       this->coords[i] += v[i];
     }
   }
 
   inline void operator-=(const Vector<T> &v) {
-    for (int i{0}; i < 2; ++i) {
+    for (int i{0}; i < 3; ++i) {
       this->coords[i] -= v[i];
     }
   }
@@ -256,7 +263,7 @@ class Vector {
   T size() const {
     T retVal{0};
 
-    for (int i{0}; i<2; ++i) {
+    for (int i{0}; i < 3; ++i) {
       retVal += coords[i] * coords[i];
     }
 
@@ -265,13 +272,9 @@ class Vector {
 
   void normalize() {
     T s{this->size()};
-    for (int i{0}; i<2; ++i) {
+    for (int i{0}; i < 3; ++i) {
       coords[i] /= s;
     }
-  }
-
-  T direction() {
-    return atan2(coords[1], coords[0]);
   }
 
  private:
@@ -298,6 +301,8 @@ struct Range {
   T maxX;
   T minY;
   T maxY;
+  T minZ;
+  T maxZ;
 };
 
 template <class T, class R>

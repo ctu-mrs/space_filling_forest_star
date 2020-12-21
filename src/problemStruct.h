@@ -151,7 +151,7 @@ bool Solver<T, R>::isPathFree(Point<T> &start, Point<T> &finish) {
   Vector<T> direction{start, finish};
   bool isFree{true};
   for (unsigned int index{1}; index < parts && isFree; ++index) {
-    for (int i{0}; i<2; ++i) {
+    for (int i{0}; i < 3; ++i) {
       position.setPosition(i, start[i] + index * direction[i] / parts); // create point on path between nodes (line specified by deque direction)
     }
 
@@ -259,7 +259,7 @@ void Solver<T, R>::saveCities(const FileStruct file) {
       fileStream << "o Points\n";;
       for (int i{0}; i < problem.GetNumRoots(); ++i) { // goal is included
         for (Node<T, R> &node : this->trees[i].nodes){
-          fileStream << "v" << DELIMITER_OUT << node.Position << DELIMITER_OUT << "0" << "\n";
+          fileStream << "v" << DELIMITER_OUT << node.Position << "\n";
         }
       }
     } else if (file.type == Map) {
@@ -293,7 +293,7 @@ void Solver<T, R>::saveTrees(const FileStruct file) {
       fileStream << "o Trees\n";
       for (int i{0}; i < problem.GetNumRoots(); ++i) {
         for (Node<T, R> &node : this->trees[i].nodes) {
-          fileStream << "v" << DELIMITER_OUT << node.Position << DELIMITER_OUT << "0" << "\n";
+          fileStream << "v" << DELIMITER_OUT << node.Position << "\n";
         }
       }
 
@@ -465,7 +465,7 @@ void Solver<T, R>::savePaths(const FileStruct file) {
       fileStream << "o Paths\n";
       for (int i{0}; i < this->trees.size(); ++i) {
         for (Node<T, R> &node : this->trees[i].nodes) {
-          fileStream << "v" << DELIMITER_OUT << node.Position << DELIMITER_OUT << "0" << "\n";
+          fileStream << "v" << DELIMITER_OUT << node.Position << "\n";
         }
       }
       

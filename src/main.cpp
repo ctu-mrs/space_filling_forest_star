@@ -154,6 +154,22 @@ void parseFile(const std::string &fileName, Problem<double> &problem) {
         throw invalid_argument("invalid max attribute in rangey node");
       }
       problem.environment.limits.maxY = std::stod(attr->value());
+
+      subNode = node->first_node("RangeZ");
+      if (subNode == nullptr) {
+        throw std::invalid_argument("invalid rangez node in range node");
+      }
+      attr = subNode->first_attribute("min");
+      if (attr == nullptr) {
+        throw invalid_argument("invalid min attribute in rangez node");
+      }
+      problem.environment.limits.minZ = std::stod(attr->value());
+
+      attr = subNode->first_attribute("max");
+      if (attr == nullptr) {
+        throw invalid_argument("invalid max attribute in rangez node");
+      }
+      problem.environment.limits.maxZ = std::stod(attr->value());
     }
 
     // parse environment

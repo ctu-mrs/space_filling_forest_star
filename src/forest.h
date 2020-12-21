@@ -527,7 +527,7 @@ void SpaceForest<T, R>::saveFrontiers(const FileStruct file) {
         for (int i{0}; i < this->trees.size(); ++i) {
           for (auto heap : this->trees[i].frontiers) {
             for (Node<T, R> *node : *(heap.getHeapVector())) {
-              fileStream << "v" << DELIMITER_OUT << node->Position << DELIMITER_OUT << "0" << "\n";
+              fileStream << "v" << DELIMITER_OUT << node->Position << "\n";
             }
 
             break;  // all nodes are in all heaps, so printing the first heap is sufficient
@@ -535,7 +535,7 @@ void SpaceForest<T, R>::saveFrontiers(const FileStruct file) {
         }
       } else {
         for (Node <T, R> *node : this->frontier) {
-          fileStream << "v" << DELIMITER_OUT << node->Position << DELIMITER_OUT << "0" << "\n";
+          fileStream << "v" << DELIMITER_OUT << node->Position << "\n";
         }
       }
     } else if (file.type == Map) {
