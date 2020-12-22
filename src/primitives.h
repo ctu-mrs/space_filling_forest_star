@@ -65,6 +65,9 @@ template<class T, class R> class Heap;
 
 int parseString(std::string &inp, std::string &outp1, std::string &outp2, std::string &delimiter);
 FileStruct prefixFileName(const FileStruct &path, const std::string &insert);
+template <class T> T NormalizeAngle(T angle);
+template <class T, class R> T AngleDifference(T a1, R a2);
+
 template <class T> T Distance(Node<T> &node1, Node<T> &ref);
 template <class T> T StarDistance(Node<T> &node1, Node<T> &ref);
 
@@ -225,12 +228,12 @@ class Point {
         retVal.setPosition(i, coords[i] + direction[i] * (dist / realDist));
       }
       for (int i{0}; i < 3; ++i) {
-        retVal.setPosition(i + 3; (*this)[i + 3] + angleDir[i] * (dist / realDist));
+        retVal.setPosition(i + 3, (*this)[i + 3] + angleDir[i] * (dist / realDist));
       }
       return retVal;
     }
 
-    void FillRotationMatrix(T** &matrix) {
+    void FillRotationMatrix(T (&matrix)[3][3]) {
       matrix[0][0] = cos(Yaw) * cos(Pitch);
       matrix[0][1] = cos(Yaw) * sin(Pitch) * sin(Roll) - sin(Yaw) * cos(Roll);
       matrix[0][2] = cos(Yaw) * sin(Pitch) * cos(Roll) + sin(Yaw) * sin(Roll);
@@ -262,9 +265,9 @@ T NormalizeAngle(T angle) {
   }
 }
 
-template <class T>
-T AngleDifference(T a1, T a2) {
-  T diff{a2 - a1};
+template <class T, class R>
+T AngleDifference(T a1, R a2) {
+  T diff{(T)a2 - a1};
   return NormalizeAngle(diff);
 }
 
@@ -377,6 +380,46 @@ struct Range {
   T maxZ;
 };
 
+// FLANN FUNCTOR
+class True
+{
+public:
+    static const bool val = true;
+};
+
+class False
+{
+public:
+    static const bool val = false;
+};
+
+template<class T>
+struct D6Distance {
+  typedef False is_kd_tree_distance;
+  typedef True is_vector_space_distance;
+
+  typedef T ElementType;
+  typedef typename flann::Accumulator<T>::Type ResultType;
+  typedef ResultType CentersType;
+
+  template <typename Iterator1, typename Iterator2>
+  ResultType operator()(Iterator1 a, Iterator2 b, size_t size, ResultType worst_dist = -1) const {
+    ResultType result = ResultType();
+    ResultType diff;
+
+    for (int i{0}; i < 3; ++i) {
+      diff = (ResultType)(*a++ - *b++);
+      result = diff * diff;
+    }
+
+    for (int i{3}; i < 6; ++i) {
+      diff = (ResultType)AngleDifference(*a++, *b++);
+      result = diff * diff;
+    }
+    return result;
+  }
+};
+
 template <class T, class R>
 class Node {
   public:
@@ -438,7 +481,7 @@ class Tree {
     inline static bool AStar = false;
     std::deque<R> nodes;
     R *Root;
-    flann::Index<flann::L2<float>> *flannIndex;
+    flann::Index<D6Distance<float>> *flannIndex;
     std::deque<float *> ptrToDel;
     std::deque<DistanceHolder<T, R>> links;
     std::deque<Heap<T, R>> frontiers;
@@ -662,4 +705,5 @@ template <class T>
 T StarDistance(Node<T> &node1, Node<T> &ref) {
   return 0.7 * node1.Position.distance(ref.Position) + 0.3 * node1.DistanceToRoot;
 }
+
 #endif

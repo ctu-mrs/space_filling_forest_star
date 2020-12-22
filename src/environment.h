@@ -266,7 +266,7 @@ bool Obstacle<T>::Collide(Obstacle<T> &object, Obstacle<T> &robot, Point<T> robP
   T rotMat2[3][3];
   robPos.FillRotationMatrix(rotMat2);
 
-  RAPID_Collide(Obstacle<T>::eyeRotation, vecPos1(), object1.getRapidModel(), rotMat2, vecPos2(), object2.getRapidModel());
+  RAPID_Collide(Obstacle<T>::eyeRotation, vecPos1(), object.getRapidModel(), rotMat2, vecPos2(), robot.getRapidModel());
   return RAPID_num_contacts != 0;
 }
 

@@ -23,8 +23,9 @@
 #include "problemStruct.h"
 #include "heap.h"
 
-#define SQR(A) ((A) * (A))
-#define CLOSED_OBST_MULT 1
+#define SQR(A)              ((A) * (A))
+#define CLOSED_OBST_MULT    1
+#define PROBLEM_DIMENSION   6
 
 using namespace std;
 
@@ -55,26 +56,26 @@ class SpaceForest : public Solver<T, R> {
 template <class T, class R>
 SpaceForest<T, R>::SpaceForest(Problem<T> &problem) : Solver<T,R>(problem), 
   numRoots{this->problem.GetNumRoots()}, borders{numRoots} {
-    flann::Matrix<float> globMat{new float[this->problem.roots.size() * 2], this->problem.roots.size(), 2};
+    flann::Matrix<float> globMat{new float[this->problem.roots.size() * PROBLEM_DIMENSION], this->problem.roots.size(), PROBLEM_DIMENSION};
     for (int j{0}; j < this->problem.roots.size(); ++j) {
       Tree<T, Node<T, R>> &tree{this->trees.emplace_back()};
       Node<T, R> &node{tree.nodes.emplace_back(this->problem.roots[j], &tree, nullptr, 0, 0)};
       tree.Root = &node;
-      flann::Matrix<float> rootMat{new float[1 * 2], 1, 2};
+      flann::Matrix<float> rootMat{new float[1 * PROBLEM_DIMENSION], 1, PROBLEM_DIMENSION};
       frontier.push_back(&node);
       
-      for (int i{0}; i < 2; ++i) {
+      for (int i{0}; i < PROBLEM_DIMENSION; ++i) {
         rootMat[0][i] = node.Position[i];
         globMat[j][i] = node.Position[i];
       }
-      tree.flannIndex = new flann::Index<flann::L2<float>>(rootMat, flann::KDTreeIndexParams(4));
+      tree.flannIndex = new flann::Index<D6Distance<float>>(rootMat, flann::KDTreeIndexParams(4));
       tree.flannIndex->buildIndex();
       tree.ptrToDel.push_back(rootMat.ptr());
     }
     delete[] globMat.ptr();
 
     if (this->usePriority) {
-      flann::Index<flann::L2<float>> *flannIndex{new flann::Index<flann::L2<float>>(globMat, flann::KDTreeIndexParams(4))};
+      flann::Index<D6Distance<float>> *flannIndex{new flann::Index<D6Distance<float>>(globMat, flann::KDTreeIndexParams(4))};
       flannIndex->buildIndex();
       for (int i{0}; i < this->trees.size(); ++i) {
         Tree<T, Node<T, R>> &tree{this->trees[i]};
@@ -89,11 +90,11 @@ SpaceForest<T, R>::SpaceForest(Problem<T> &problem) : Solver<T,R>(problem),
     if (this->problem.hasGoal) {
       Tree<T, Node<T, R>> &tree{this->trees.emplace_back()};
       Node<T, R> &node{tree.nodes.emplace_back(this->problem.goal, &tree, nullptr, 0, 0)};
-      flann::Matrix<float> rootMat{new float[1 * 2], 1, 2};
-      for (int i{0}; i < 2; ++i) {
+      flann::Matrix<float> rootMat{new float[1 * PROBLEM_DIMENSION], 1, PROBLEM_DIMENSION};
+      for (int i{0}; i < PROBLEM_DIMENSION; ++i) {
         rootMat[0][i] = this->problem.goal[i];
       }
-      tree.flannIndex = new flann::Index<flann::L2<float>>(rootMat, flann::KDTreeIndexParams(4));
+      tree.flannIndex = new flann::Index<D6Distance<float>>(rootMat, flann::KDTreeIndexParams(4));
       tree.flannIndex->buildIndex();
       tree.ptrToDel.emplace_back(rootMat.ptr());
       goalNode = &node;
@@ -255,8 +256,8 @@ bool SpaceForest<T, R>::expandNode(Node<T, R> *expanded, bool &solved) {
   //find nearest neighbors - perform radius search
   std::vector<std::vector<int>> indices;
   std::vector<std::vector<float>> dists;
-  flann::Matrix<float> pointToAdd{new float[2], 1, 2}; // just one point to add
-  for (int i{0}; i<2; ++i) {
+  flann::Matrix<float> pointToAdd{new float[PROBLEM_DIMENSION], 1, PROBLEM_DIMENSION}; // just one point to add
+  for (int i{0}; i < PROBLEM_DIMENSION; ++i) {
     pointToAdd[0][i] = newPoint[i];
   }
   T checkDist{this->treeDistance +  2 * Node<T,R>::SamplingDistance}; //expanded->GetSampDist()};
@@ -311,8 +312,8 @@ bool SpaceForest<T, R>::expandNode(Node<T, R> *expanded, bool &solved) {
     indices.clear();
     dists.clear();
 
-    flann::Matrix<float> newPointMat{new float[2], 1, 2};
-    for (int i{0}; i < 2; ++i) {
+    flann::Matrix<float> newPointMat{new float[PROBLEM_DIMENSION], 1, PROBLEM_DIMENSION};
+    for (int i{0}; i < PROBLEM_DIMENSION; ++i) {
       newPointMat[0][i] = newPoint[i];
     }
     expandedTree->flannIndex->knnSearch(newPointMat, indices, dists, ksff, flann::SearchParams(128));

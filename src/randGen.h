@@ -86,7 +86,7 @@ bool RandGen<T>::randomPointInNormDistance(const Point<T>& center, Point<T>& poi
 
 template<class T>
 void RandGen<T>::randomPointInSpace(Point<T> &point) {
-  point.set(uniSpaceX(rndEng), uniSpaceY(rndEng));
+  point.set(uniSpaceX(rndEng), uniSpaceY(rndEng), 0);
 }
 
 template<class T>
