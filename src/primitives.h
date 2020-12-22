@@ -205,7 +205,7 @@ class Point {
             (p1.x() == p2.x() && p1.y() == p2.y() && p1.z() == p2.z() && p1.Yaw == p2.Yaw && p1.Pitch == p2.Pitch && p1.Roll < p2.Roll);
     }
 
-    T distance(Point<T> &other) {
+    T distance(const Point<T> &other) const {
       T sum{0};
       for (int i{0}; i < 3; ++i) {
         T diff{(*this)[i] - other[i]};
@@ -218,7 +218,7 @@ class Point {
       return sqrt(sum);
     }
 
-    Point<T> getStateInDistance(Point<T> &other, T dist) {
+    Point<T> getStateInDistance(Point<T> &other, T dist) const {
       T realDist{distance(other)};
       Vector<T> direction(*this, other);
       Vector<T> angleDir(AngleDifference((*this)[3], other[3]), AngleDifference((*this)[4], other[4]), AngleDifference((*this)[5], other[5]));
