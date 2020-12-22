@@ -76,12 +76,19 @@ int sgn(T val) {
 template<class T>
 class Point {
   public:
+    T Yaw{0};
+    T Pitch{0};
+    T Roll{0};
+    
     Point<T>() : coords{0, 0, 0} {
 
     }
 
     Point<T>(T x, T y, T z) : coords{x, y, z} {
 
+    }
+
+    Point<T>(T x, T y, T z, T yaw, T pitch, T roll) : coords{x, y, z}, Yaw{yaw}, Pitch{pitch}, Roll{roll} {
     }
 
     Point<T>(const std::string &s) {
@@ -102,6 +109,9 @@ class Point {
           coords[i] = p[i];
         }
       }
+      Yaw = p.Yaw;
+      Pitch = p.Pitch;
+      Roll = p.Roll;
 
       return *this;
     }
@@ -124,15 +134,31 @@ class Point {
       coords[2] = z;
     }
 
+    void set(T x, T y, T z, T yaw, T pitch, T roll) {
+      coords[0] = x;
+      coords[1] = y;
+      coords[2] = z;
+      Yaw = yaw;
+      Pitch = pitch;
+      Roll = roll;
+    }
+
     const T* get() const {
       return coords;
     }
 
     void setPosition(unsigned int pos, T val) {
-      if (pos > 2) {
+      if (pos > 5) {
         return;
-      } 
-      coords[pos] = val;
+      } else if (pos < 3) {
+        coords[pos] = val;
+      } else if (pos == 3) {
+        Yaw = val;
+      } else if (pos == 4) {
+        Pitch = val;
+      } else if (pos == 5) {
+        Roll = val;
+      }
     }
 
     inline const T* operator()() const {
@@ -142,6 +168,12 @@ class Point {
     const T operator[](int i) const {
       if (i < 3) {
         return coords[i];
+      } else if (i == 3) {
+        return Yaw;
+      } else if (i == 4) {
+        return Pitch;
+      } else if (i == 5) {
+        return Roll;
       } else {
         return 1;
       }
@@ -154,23 +186,30 @@ class Point {
     }
 
     friend bool operator==(const Point<T> &p1, const Point<T> &p2) {
-      return p1.x() == p2.x() && p1.y() == p2.y() && p1.z() == p2.z();
+      return p1.x() == p2.x() && p1.y() == p2.y() && p1.z() == p2.z() && p1.Yaw == p2.Yaw && p1.Pitch == p2.Pitch && p1.Roll == p2.Roll;
     }
 
     friend bool operator!=(const Point<T> &p1, const Point<T> &p2) {
-      return p1.x() != p2.x() || p1.y() != p2.y() || p1.z() != p2.z();
+      return p1.x() != p2.x() || p1.y() != p2.y() || p1.z() != p2.z() || p1.Yaw != p2.Yaw || p1.Pitch != p2.Pitch || p1.Roll != p2.Roll;
     }
 
     friend bool operator<(const Point<T> &p1, const Point<T> &p2) {
       return p1.x() < p2.x() ||
             (p1.x() == p2.x() && p1.y() < p2.y()) ||
-            (p1.x() == p2.x() && p1.y() == p2.y() && p1.z() < p2.z());
+            (p1.x() == p2.x() && p1.y() == p2.y() && p1.z() < p2.z()) ||
+            (p1.x() == p2.x() && p1.y() == p2.y() && p1.z() == p2.z() && p1.Yaw < p2.Yaw) ||
+            (p1.x() == p2.x() && p1.y() == p2.y() && p1.z() == p2.z() && p1.Yaw == p2.Yaw && p1.Pitch < p2.Pitch) ||
+            (p1.x() == p2.x() && p1.y() == p2.y() && p1.z() == p2.z() && p1.Yaw == p2.Yaw && p1.Pitch == p2.Pitch && p1.Roll < p2.Roll);
     }
 
     T distance(Point<T> &other) {
       T sum{0};
       for (int i{0}; i < 3; ++i) {
-        T diff{coords[i] - other[i]};
+        T diff{(*this)[i] - other[i]};
+        sum += diff * diff;
+      }
+      for (int i{3}; i < 6; ++i) {
+        T diff{AngleDifference((*this)[i], other[i])};
         sum += diff * diff;
       }
       return sqrt(sum);
@@ -179,12 +218,28 @@ class Point {
     Point<T> getStateInDistance(Point<T> &other, T dist) {
       T realDist{distance(other)};
       Vector<T> direction(*this, other);
+      Vector<T> angleDir(AngleDifference((*this)[3], other[3]), AngleDifference((*this)[4], other[4]), AngleDifference((*this)[5], other[5]));
       Point <T> retVal;
 
       for (int i{0}; i < 3; ++i) {
         retVal.setPosition(i, coords[i] + direction[i] * (dist / realDist));
       }
+      for (int i{0}; i < 3; ++i) {
+        retVal.setPosition(i + 3; (*this)[i + 3] + angleDir[i] * (dist / realDist));
+      }
       return retVal;
+    }
+
+    void FillRotationMatrix(double** &matrix) {
+      matrix[0][0] = cos(Yaw) * cos(Pitch);
+      matrix[0][1] = cos(Yaw) * sin(Pitch) * sin(Roll) - sin(Yaw) * cos(Roll);
+      matrix[0][2] = cos(Yaw) * sin(Pitch) * cos(Roll) + sin(Yaw) * sin(Roll);
+      matrix[1][0] = sin(Yaw) * cos(Pitch);
+      matrix[1][1] = sin(Yaw) * sin(Pitch) * sin(Roll) + cos(Yaw) * cos(Roll);
+      matrix[1][2] = sin(Yaw) * sin(Pitch) * cos(Roll) - cos(Yaw) * sin(Roll);
+      matrix[2][0] = -sin(Pitch);
+      matrix[2][1] = cos(Pitch) * sin(Roll);
+      matrix[2][2] = cos(Pitch) * cos(Roll);
     }
 
   private:
@@ -193,7 +248,24 @@ class Point {
 
 template <class T>
 std::ostream& operator<<(std::ostream &out, const Point<T> &p) {
-  return out << p.x() << DELIMITER_OUT << p.y() << DELIMITER_OUT << p.z();
+  return out << p.x() << DELIMITER_OUT << p.y() << DELIMITER_OUT << p.z() << DELIMITER_OUT << p.Yaw << DELIMITER_OUT << p.Pitch << DELIMITER_OUT << p.Roll;
+}
+
+template <class T>
+T NormalizeAngle(T angle) {
+  if (angle < -M_PI) {
+    return angle + 2 * M_PI;
+  } else if (angle >= M_PI) {
+    return angle - 2 * M_PI;
+  } else {
+    return angle;
+  }
+}
+
+template <class T>
+T AngleDifference(T a1, T a2) {
+  T diff{a2 - a1};
+  return NormalizeAngle(diff);
 }
 
 template <class T>

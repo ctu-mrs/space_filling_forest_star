@@ -30,7 +30,7 @@ class Environment {
   public:
     std::deque<Obstacle<T>> Obstacles;
     Obstacle<T> *Robot;
-    Range<T> limits{__DBL_MAX__, -__DBL_MAX__, __DBL_MAX__, -__DBL_MAX__};
+    Range<T> limits{__DBL_MAX__, -__DBL_MAX__, __DBL_MAX__, -__DBL_MAX__, __DBL_MAX__, -__DBL_MAX__};
     bool HasMap{true};
 
     Environment() : Robot{nullptr} {
@@ -47,6 +47,8 @@ class Environment {
       this->limits.maxX = MAX(this->limits.maxX, limits.maxX);
       this->limits.minY = MIN(this->limits.minY, limits.minY);
       this->limits.maxY = MAX(this->limits.maxY, limits.maxY);
+      this->limits.minZ = MIN(this->limits.minZ, limits.minZ);
+      this->limits.maxZ = MAX(this->limits.maxZ, limits.maxZ);
     }
 
 };
@@ -82,7 +84,7 @@ class Obstacle {
     std::vector<Point<T>> facePoints;
     std::vector<Triangle<T>> faces;
     RAPID_model *rapidModel = NULL;
-    Range<T> localRange{__DBL_MAX__, -__DBL_MAX__, __DBL_MAX__, -__DBL_MAX__};
+    Range<T> localRange{__DBL_MAX__, -__DBL_MAX__, __DBL_MAX__, -__DBL_MAX__, __DBL_MAX__, -__DBL_MAX__};
     inline static int rapidId = 0;
     inline static double eyeRotation[3][3] = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}}; 
 
