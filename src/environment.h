@@ -234,8 +234,11 @@ void Obstacle<T>::addFacet(int objId, int offset, int faceInts[3]) {
 template <class T>
 bool Obstacle<T>::Collide(Obstacle<T> &object1, Point<T> pos1, Obstacle<T> &object2, Point<T> pos2) {  
   Vector<T> vecPos1{pos1}, vecPos2{pos2};
+  T rotMat1[3][3], rotMat2[3][3];
+  pos1.FillRotationMatrix(rotMat1);
+  pos2.FillRotationMatrix(rotMat2);
 
-  RAPID_Collide(Obstacle<T>::eyeRotation, vecPos1(), object1.getRapidModel(), Obstacle<T>::eyeRotation, vecPos2(), object2.getRapidModel());
+  RAPID_Collide(rotMat1, vecPos1(), object1.getRapidModel(), rotMat2, vecPos2(), object2.getRapidModel());
   return RAPID_num_contacts != 0;
 }
 
@@ -259,8 +262,12 @@ bool Obstacle<T>::Collide(Obstacle<T> &object1, Obstacle<T> &object2) {
  */
 template <class T>
 bool Obstacle<T>::Collide(Obstacle<T> &object, Obstacle<T> &robot, Point<T> robPos) {
-  Point<T> nullPnt;
-  return Collide(object, nullPnt, robot, robPos);
+  Vector<T> vecPos1, vecPos2{robPos};
+  T rotMat2[3][3];
+  robPos.FillRotationMatrix(rotMat2);
+
+  RAPID_Collide(Obstacle<T>::eyeRotation, vecPos1(), object1.getRapidModel(), rotMat2, vecPos2(), object2.getRapidModel());
+  return RAPID_num_contacts != 0;
 }
 
 /**

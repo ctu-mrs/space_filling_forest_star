@@ -230,7 +230,7 @@ class Point {
       return retVal;
     }
 
-    void FillRotationMatrix(double** &matrix) {
+    void FillRotationMatrix(T** &matrix) {
       matrix[0][0] = cos(Yaw) * cos(Pitch);
       matrix[0][1] = cos(Yaw) * sin(Pitch) * sin(Roll) - sin(Yaw) * cos(Roll);
       matrix[0][2] = cos(Yaw) * sin(Pitch) * cos(Roll) + sin(Yaw) * sin(Roll);
