@@ -303,7 +303,9 @@ void Solver<T, R>::saveTrees(const FileStruct file) {
       fileStream << "o Trees\n";
       for (int i{0}; i < this->allNodes.size(); ++i) {
         Point<T> temp{this->allNodes[i]->Position / problem.environment.ScaleFactor};
-        fileStream << "v" << DELIMITER_OUT << temp << "\n";
+        fileStream << "v" << DELIMITER_OUT;
+        temp.printPosOnly(fileStream);
+        fileStream << "\n";
       }
 
       for (int i{0}; i < this->trees.size(); ++i) {
@@ -473,7 +475,10 @@ void Solver<T, R>::savePaths(const FileStruct file) {
     if (file.type == Obj) {
       fileStream << "o Paths\n";
       for (int i{0}; i < this->allNodes.size(); ++i) {
-        fileStream << "v" << DELIMITER_OUT << this->allNodes[i]->Position / problem.environment.ScaleFactor << "\n";
+        Point<T> temp{this->allNodes[i]->Position / problem.environment.ScaleFactor};
+        fileStream << "v" << DELIMITER_OUT;
+        temp.printPosOnly(fileStream);
+        fileStream << "\n";
       }
       
       for (int i{0}; i < numRoots; ++i) {

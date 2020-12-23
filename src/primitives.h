@@ -254,13 +254,17 @@ class Point {
       matrix[2][2] = cos(Pitch) * cos(Roll);
     }
 
+    void printPosOnly(std::ostream &out) {
+      out << this->x() << DELIMITER_OUT << this->y() << DELIMITER_OUT << this->z();
+    }
+
   private:
     T coords[3];
 };
 
 template <class T>
 std::ostream& operator<<(std::ostream &out, const Point<T> &p) {
-  return out << p.x() << DELIMITER_OUT << p.y() << DELIMITER_OUT << p.z(); // << DELIMITER_OUT << p.Yaw << DELIMITER_OUT << p.Pitch << DELIMITER_OUT << p.Roll;
+  return out << p.x() << DELIMITER_OUT << p.y() << DELIMITER_OUT << p.z() << DELIMITER_OUT << p.Yaw << DELIMITER_OUT << p.Pitch << DELIMITER_OUT << p.Roll;
 }
 
 template <class T>

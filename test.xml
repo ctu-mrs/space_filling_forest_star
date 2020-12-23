@@ -6,9 +6,9 @@
     <Obstacle file=".//models//3D//building.obj" is_obj="true" position="[0; 0; 0]"/>
   </Environment>
   <Points>
-    <Point coord="[5.5;5.5;5]"/>
+    <Point coord="[0;0;3.6]"/>
     <Point coord="[0;0;0.6]"/>
-    <Point coord="[-5.5;-5.5;10]"/>
+    <Point coord="[0;0;9.6]"/>
   </Points>
   <Range autoDetect="false"> 
     <RangeX min="-7" max="7" />

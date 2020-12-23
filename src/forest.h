@@ -526,7 +526,10 @@ void SpaceForest<T, R>::saveFrontiers(const FileStruct file) {
         for (int i{0}; i < this->trees.size(); ++i) {
           for (auto heap : this->trees[i].frontiers) {
             for (Node<T, R> *node : *(heap.getHeapVector())) {
-              fileStream << "v" << DELIMITER_OUT << node->Position / this->problem.environment.ScaleFactor << "\n";
+              Point<T> temp{node->Position / this->problem.environment.ScaleFactor};
+              fileStream << "v" << DELIMITER_OUT;
+              temp.printPosOnly(fileStream);
+              fileStream << "\n";
             }
             break;  // all nodes are in all heaps, so printing the first heap is sufficient
           }
