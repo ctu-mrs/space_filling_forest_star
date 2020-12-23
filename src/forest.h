@@ -51,6 +51,7 @@ class SpaceForest : public Solver<T, R> {
     void smoothPaths() override;
 
     void saveFrontiers(const FileStruct file);
+    void saveIterCheck(const int iter) override;
 };
 
 template <class T, class R>
@@ -158,6 +159,7 @@ void SpaceForest<T, R>::Solve() {
     for (int i{0}; i < Node<T,R>::ThresholdMisses && expandResult && iter < this->problem.maxIterations; ++i) {
       ++iter;
       expandResult &= expandNode(nodeToExpand, solved);
+      saveIterCheck(iter);
     }
     if (expandResult && !fromClosed) {
       if (!this->usePriority) {
@@ -180,16 +182,6 @@ void SpaceForest<T, R>::Solve() {
       closed_list.push_back(nodeToExpand);
     } else if (this->usePriority && !fromClosed) {
       prior->push(nodeToExpand);
-    }
-
-    if (this->problem.saveTreeIter != 0 && !(iter % this->problem.saveTreeIter)) {
-      std::string prefix{"iter_" + to_string(iter) + "_"};
-      this->saveTrees(prefixFileName(this->problem.fileNames[SaveTree], prefix));
-    }
-
-    if (this->problem.saveFrontiersIter != 0 && !(iter % this->problem.saveFrontiersIter)) {
-      std::string prefix{"iter_" + to_string(iter) + "_"};
-      this->saveFrontiers(prefixFileName(this->problem.fileNames[SaveFrontiers], prefix));
     }
 
     // check, whether all points are connected of frontiers are empty
@@ -568,6 +560,16 @@ void SpaceForest<T, R>::saveFrontiers(const FileStruct file) {
     fileStream.close();
   } else {
     std::cout << "Cannot open file at: " << file.fileName << "\n";
+  }
+}
+
+template<class T, class R>
+void SpaceForest<T, R>::saveIterCheck(const int iter) {
+  Solver<T, R>::saveIterCheck(iter);
+
+  if (this->problem.saveFrontiersIter != 0 && !(iter % this->problem.saveFrontiersIter)) {
+    std::string prefix{"iter_" + to_string(iter) + "_"};
+    this->saveFrontiers(prefixFileName(this->problem.fileNames[SaveFrontiers], prefix));
   }
 }
 

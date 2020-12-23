@@ -132,6 +132,7 @@ class Solver {
     void checkDistances(std::deque<Node<T, R> *> &plan, T distanceToCheck);
     T computeDistance(std::deque<Node<T, R> *> &plan);
 
+    virtual void saveIterCheck(const int iter);
     virtual void saveTrees(const FileStruct file);
     virtual void saveCities(const FileStruct file);
     virtual void savePaths(const FileStruct file);
@@ -243,6 +244,14 @@ void Solver<T, R>::getAllPaths() {
         }
       }
     }
+  }
+}
+
+template<class T, class R>
+void Solver<T, R>::saveIterCheck(const int iter) {
+  if (this->problem.saveTreeIter != 0 && !(iter % this->problem.saveTreeIter)) {
+    std::string prefix{"iter_" + to_string(iter) + "_"};
+    this->saveTrees(prefixFileName(this->problem.fileNames[SaveTree], prefix));
   }
 }
 
