@@ -316,10 +316,11 @@ void Solver<T, R>::saveTrees(const FileStruct file) {
         }
       }
     } else if (file.type == Map) {
+      fileStream << "#X1 Y1 Z1 Yaw1 Pitch1 Roll1 X2 Y2 Z2 Yaw2 Pitch2 Roll2 TreeID IterationOfCreation\n";
       for (int i{0}; i < this->trees.size(); ++i) {
         for (Node<T, R> &node : this->trees[i].nodes) {
           if (node.DistanceToRoot != 0) {
-            fileStream << node.Position / problem.environment.ScaleFactor << DELIMITER_OUT << node.Closest->Position / problem.environment.ScaleFactor << DELIMITER_OUT << node.Root->GetId() << "\n";
+            fileStream << node.Position / problem.environment.ScaleFactor << DELIMITER_OUT << node.Closest->Position / problem.environment.ScaleFactor << DELIMITER_OUT << node.Root->GetId() << DELIMITER_OUT << node.GetAge() << "\n";
           }
         }
       }

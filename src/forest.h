@@ -43,7 +43,7 @@ class SpaceForest : public Solver<T, R> {
     Node<T, R> *nodeToExpand{nullptr};
     SymmetricMatrix<std::deque<DistanceHolder<T, Node<T, R>>>> borders;
 
-    bool expandNode(Node<T, R> *expanded, bool &solved);
+    bool expandNode(Node<T, R> *expanded, bool &solved, const unsigned int iteration);
     int maxConnected();
 
     void getPaths() override;
@@ -59,7 +59,7 @@ SpaceForest<T, R>::SpaceForest(Problem<T> &problem) : Solver<T,R>(problem),
     flann::Matrix<float> globMat{new float[this->problem.roots.size() * PROBLEM_DIMENSION], this->problem.roots.size(), PROBLEM_DIMENSION};
     for (int j{0}; j < this->problem.roots.size(); ++j) {
       Tree<T, Node<T, R>> &tree{this->trees.emplace_back()};
-      Node<T, R> &node{tree.nodes.emplace_back(this->problem.roots[j], &tree, nullptr, 0, 0)};
+      Node<T, R> &node{tree.nodes.emplace_back(this->problem.roots[j], &tree, nullptr, 0, 0, 0)};
       this->allNodes.push_back(&node);
       tree.Root = &node;
       flann::Matrix<float> rootMat{new float[1 * PROBLEM_DIMENSION], 1, PROBLEM_DIMENSION};
@@ -93,7 +93,7 @@ SpaceForest<T, R>::SpaceForest(Problem<T> &problem) : Solver<T,R>(problem),
     // add goal - it is not expanded
     if (this->problem.hasGoal) {
       Tree<T, Node<T, R>> &tree{this->trees.emplace_back()};
-      Node<T, R> &node{tree.nodes.emplace_back(this->problem.goal, &tree, nullptr, 0, 0)};
+      Node<T, R> &node{tree.nodes.emplace_back(this->problem.goal, &tree, nullptr, 0, 0, 0)};
       this->allNodes.push_back(&node);
       flann::Matrix<float> rootMat{new float[1 * PROBLEM_DIMENSION], 1, PROBLEM_DIMENSION};
       for (int i{0}; i < PROBLEM_DIMENSION; ++i) {
@@ -157,7 +157,7 @@ void SpaceForest<T, R>::Solve() {
     bool expandResult{true};
     for (int i{0}; i < Node<T,R>::ThresholdMisses && expandResult && iter < this->problem.maxIterations; ++i) {
       ++iter;
-      expandResult &= expandNode(nodeToExpand, solved);
+      expandResult &= expandNode(nodeToExpand, solved, iter);
       saveIterCheck(iter);
     }
     if (expandResult && !fromClosed) {
@@ -235,7 +235,7 @@ void SpaceForest<T, R>::Solve() {
 
 // false means success
 template<class T, class R>
-bool SpaceForest<T, R>::expandNode(Node<T, R> *expanded, bool &solved) {
+bool SpaceForest<T, R>::expandNode(Node<T, R> *expanded, bool &solved, const unsigned int iteration) {
   Point<T> newPoint;
 
   bool result;
@@ -324,7 +324,7 @@ bool SpaceForest<T, R>::expandNode(Node<T, R> *expanded, bool &solved) {
       }
     }
 
-    newNode = &(expandedTree->nodes.emplace_back(newPoint, expandedTree, expanded, newPoint.distance(expanded->Position), bestDist));
+    newNode = &(expandedTree->nodes.emplace_back(newPoint, expandedTree, expanded, newPoint.distance(expanded->Position), bestDist, iteration));
     expanded->Children.push_back(newNode);
 
     for (int &ind : indRow) {
@@ -349,7 +349,7 @@ bool SpaceForest<T, R>::expandNode(Node<T, R> *expanded, bool &solved) {
     delete[] newPointMat.ptr();
   } else {
     newNode = &(expandedTree->nodes.emplace_back(newPoint, expandedTree, expanded, parentDistance, 
-      parentDistance + expanded->DistanceToRoot));
+      parentDistance + expanded->DistanceToRoot, iteration));
     expanded->Children.push_back(newNode);
   }
   this->allNodes.push_back(newNode);

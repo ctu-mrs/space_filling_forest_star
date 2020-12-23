@@ -36,7 +36,7 @@ class RapidExpTree : public Solver<T, R> {
     Node<T, R> *goalNode;
     std::deque<Tree<T, Node<T, R>> *> treeFrontier;
 
-    void expandNode(Tree<T, Node<T,R>> *tree, bool &solved);
+    void expandNode(Tree<T, Node<T,R>> *tree, bool &solved, const unsigned int iteration);
     
     void getPaths() override;
     void smoothPaths() override;
@@ -47,7 +47,7 @@ template<class T, class R>
 RapidExpTree<T, R>::RapidExpTree(Problem<T> &problem) : Solver<T, R>(problem), numRoots{this->problem.GetNumRoots()} {
     for (int j{0}; j < this->problem.roots.size(); ++j) {
       Tree<T, Node<T, R>> &tree{this->trees.emplace_back()};
-      Node<T, R> &node{tree.nodes.emplace_back(this->problem.roots[j], &tree, nullptr, 0, 0)};
+      Node<T, R> &node{tree.nodes.emplace_back(this->problem.roots[j], &tree, nullptr, 0, 0, 0)};
       tree.Root = &node;
       this->allNodes.push_back(&node);
       flann::Matrix<float> rootMat{new float[1 * PROBLEM_DIMENSION], 1, PROBLEM_DIMENSION};
@@ -66,7 +66,7 @@ RapidExpTree<T, R>::RapidExpTree(Problem<T> &problem) : Solver<T, R>(problem), n
     if (this->problem.hasGoal) {
       Tree<T, Node<T, R>> &tree{this->trees.emplace_back()};
       flann::Matrix<float> rootMat{new float[1 * PROBLEM_DIMENSION], 1, PROBLEM_DIMENSION};
-      goalNode = &(tree.nodes.emplace_back(this->problem.goal, &tree, nullptr, 0, 0));
+      goalNode = &(tree.nodes.emplace_back(this->problem.goal, &tree, nullptr, 0, 0, 0));
       this->allNodes.push_back(goalNode);
       tree.Root = goalNode;
       for (int i{0}; i < PROBLEM_DIMENSION; ++i) {
@@ -93,7 +93,7 @@ void RapidExpTree<T, R>::Solve() {
   while (!(solved || iter == this->problem.maxIterations)) {
     ++iter;
     Tree<T, Node<T,R>> *treeToExpand{this->treeFrontier[this->rnd.randomIntMinMax(0, numTrees)]};
-    expandNode(treeToExpand, solved);
+    expandNode(treeToExpand, solved, iter);
 
     this->saveIterCheck(iter);
   }
@@ -125,7 +125,7 @@ void RapidExpTree<T, R>::Solve() {
 }
 
 template<class T, class R>
-void RapidExpTree<T, R>::expandNode(Tree<T, Node<T, R>> *treeToExpand, bool &solved) {
+void RapidExpTree<T, R>::expandNode(Tree<T, Node<T, R>> *treeToExpand, bool &solved, const unsigned int iteration) {
   Point<T> rndPoint, newPoint;
   if (this->usePriority && this->rnd.randomProbability() <= this->problem.priorityBias) {
     rndPoint = goalNode->Position; 
@@ -175,7 +175,7 @@ void RapidExpTree<T, R>::expandNode(Tree<T, Node<T, R>> *treeToExpand, bool &sol
       }
     }
 
-    newNode = &(treeToExpand->nodes.emplace_back(newPoint, nearest->Root, nearest, nearest->Position.distance(newPoint), bestDist));
+    newNode = &(treeToExpand->nodes.emplace_back(newPoint, nearest->Root, nearest, nearest->Position.distance(newPoint), bestDist, iteration));
     nearest->Children.push_back(newNode);
 
     for (int &ind : indRow) {
@@ -200,7 +200,7 @@ void RapidExpTree<T, R>::expandNode(Tree<T, Node<T, R>> *treeToExpand, bool &sol
       }
     }
   } else {
-    newNode = &(treeToExpand->nodes.emplace_back(newPoint, nearest->Root, nearest, Node<T, R>::SamplingDistance, nearest->DistanceToRoot + Node<T, R>::SamplingDistance));
+    newNode = &(treeToExpand->nodes.emplace_back(newPoint, nearest->Root, nearest, Node<T, R>::SamplingDistance, nearest->DistanceToRoot + Node<T, R>::SamplingDistance, iteration));
     nearest->Children.push_back(newNode);
   }
   this->allNodes.push_back(newNode);

@@ -449,8 +449,8 @@ class Node {
     T DistanceToRoot;
     std::map<Node*, T> VisibleNodes;
 
-    Node(R position, Tree<T, Node> *root, Node *closest, T distanceToClosest, T distanceToRoot) : Position{position},
-      Root{root}, Closest{closest}, DistanceToClosest{distanceToClosest}, DistanceToRoot{distanceToRoot} {
+    Node(R position, Tree<T, Node> *root, Node *closest, T distanceToClosest, T distanceToRoot, unsigned int iteration) : Position{position},
+      Root{root}, Closest{closest}, DistanceToClosest{distanceToClosest}, DistanceToRoot{distanceToRoot}, generation{iteration} {
         id = globId++;
 
         if (closest == nullptr) {
@@ -480,9 +480,14 @@ class Node {
       return globId;
     }
 
+    const unsigned int GetAge() const {
+      return generation;
+    }
+
   private:
     inline static unsigned int globId = 0;
     unsigned int id;
+    unsigned int generation;
     bool nearObstacle { false };
 
 };
