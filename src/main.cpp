@@ -25,7 +25,7 @@ int main(int argc, char *argv[]) {
   if (problem.solver == SFF) {
     solver = std::make_unique<SpaceForest<double, Point<double>>>(problem);  
   } else if (problem.solver == RRT) {
-    //solver = std::make_unique<RapidExpTree<double, Point<double>>>(problem);
+    solver = std::make_unique<RapidExpTree<double, Point<double>>>(problem);
   } else {
     throw std::string("Not implemented!");
   }

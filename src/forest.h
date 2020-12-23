@@ -25,7 +25,6 @@
 
 #define SQR(A)              ((A) * (A))
 #define CLOSED_OBST_MULT    1
-#define PROBLEM_DIMENSION   6
 
 using namespace std;
 

@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Problem solver="sff" optimize="true" smoothing="false" scale="10">
+<Problem solver="rrt" optimize="false" smoothing="false" scale="10">
   <ObjectDelimiters standard=" " name="_"/>
   <Robot file=".//models//3D//robot_cylinder_small.obj" is_obj="true"/>
   <Environment collision="0.01">
@@ -16,7 +16,7 @@
     <RangeZ min="0" max="14" />
   </Range>
   <Distances dtree="0.5" circum="0.4"/>
-  <Improvements priorityBias="0.95"/>
+  <Improvements priorityBias="0"/>
   <Thresholds standard="5" obstacle="12"/>
   <MaxIterations value="100000"/>
   <Save>

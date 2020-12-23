@@ -50,6 +50,8 @@
 #define DEFAULT_DIST_DIV 1
 #define ANGLE_MOVE 0.8
 
+#define PROBLEM_DIMENSION   6
+
 #define MIN(X, Y) ((X < Y) ? (X) : (Y))
 #define MAX(X, Y) ((X > Y) ? (X) : (Y))
 

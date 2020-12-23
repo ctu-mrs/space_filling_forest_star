@@ -49,11 +49,12 @@ RapidExpTree<T, R>::RapidExpTree(Problem<T> &problem) : Solver<T, R>(problem), n
       Tree<T, Node<T, R>> &tree{this->trees.emplace_back()};
       Node<T, R> &node{tree.nodes.emplace_back(this->problem.roots[j], &tree, nullptr, 0, 0)};
       tree.Root = &node;
-      flann::Matrix<float> rootMat{new float[1 * 2], 1, 2};
-      for (int i{0}; i < 2; ++i) {
+      this->allNodes.push_back(&node);
+      flann::Matrix<float> rootMat{new float[1 * PROBLEM_DIMENSION], 1, PROBLEM_DIMENSION};
+      for (int i{0}; i < PROBLEM_DIMENSION; ++i) {
         rootMat[0][i] = node.Position[i];
       }
-      tree.flannIndex = new flann::Index<flann::L2<float>>(rootMat, flann::KDTreeIndexParams(4));
+      tree.flannIndex = new flann::Index<D6Distance<float>>(rootMat, flann::KDTreeIndexParams(4));
       tree.flannIndex->buildIndex();
 
       tree.ptrToDel.push_back(rootMat.ptr());
@@ -64,14 +65,15 @@ RapidExpTree<T, R>::RapidExpTree(Problem<T> &problem) : Solver<T, R>(problem), n
     // add goal, which is not expanded
     if (this->problem.hasGoal) {
       Tree<T, Node<T, R>> &tree{this->trees.emplace_back()};
-      flann::Matrix<float> rootMat{new float[1 * 2], 1, 2};
+      flann::Matrix<float> rootMat{new float[1 * PROBLEM_DIMENSION], 1, PROBLEM_DIMENSION};
       goalNode = &(tree.nodes.emplace_back(this->problem.goal, &tree, nullptr, 0, 0));
+      this->allNodes.push_back(goalNode);
       tree.Root = goalNode;
-      for (int i{0}; i < 2; ++i) {
+      for (int i{0}; i < PROBLEM_DIMENSION; ++i) {
         rootMat[0][i] = goalNode->Position[i];
       }
 
-      tree.flannIndex = new flann::Index<flann::L2<float>>(rootMat, flann::KDTreeIndexParams(4));
+      tree.flannIndex = new flann::Index<D6Distance<float>>(rootMat, flann::KDTreeIndexParams(4));
       tree.flannIndex->buildIndex();
 
       tree.ptrToDel.push_back(rootMat.ptr());
@@ -93,10 +95,7 @@ void RapidExpTree<T, R>::Solve() {
     Tree<T, Node<T,R>> *treeToExpand{this->treeFrontier[this->rnd.randomIntMinMax(0, numTrees)]};
     expandNode(treeToExpand, solved);
 
-    if (this->problem.saveTreeIter != 0 && !(iter % this->problem.saveTreeIter)) {
-      std::string prefix{"iter_" + to_string(iter) + "_"};
-      this->saveTrees(prefixFileName(this->problem.fileNames[SaveTree], prefix));
-    }
+    this->saveIterCheck(iter);
   }
   auto stopTime{std::chrono::high_resolution_clock::now()};
   getConnectedTrees();
@@ -137,8 +136,8 @@ void RapidExpTree<T, R>::expandNode(Tree<T, Node<T, R>> *treeToExpand, bool &sol
   // find nearest neighbour
   std::vector<std::vector<int>> indices;
   std::vector<std::vector<float>> dists;
-  flann::Matrix<float> rndPointMat{new float[2], 1, 2}; // just one point to add
-  for (int i{0}; i<2; ++i) {
+  flann::Matrix<float> rndPointMat{new float[PROBLEM_DIMENSION], 1, PROBLEM_DIMENSION}; // just one point to add
+  for (int i{0}; i < PROBLEM_DIMENSION; ++i) {
     rndPointMat[0][i] = rndPoint[i];
   }
   treeToExpand->flannIndex->knnSearch(rndPointMat, indices, dists, 1, flann::SearchParams(128));
@@ -160,8 +159,8 @@ void RapidExpTree<T, R>::expandNode(Tree<T, Node<T, R>> *treeToExpand, bool &sol
     indices.clear();
     dists.clear();
 
-    flann::Matrix<float> newPointMat{new float[2], 1, 2};
-    for (int i{0}; i < 2; ++i) {
+    flann::Matrix<float> newPointMat{new float[PROBLEM_DIMENSION], 1, PROBLEM_DIMENSION};
+    for (int i{0}; i < PROBLEM_DIMENSION; ++i) {
       newPointMat[0][i] = newPoint[i];
     }
     treeToExpand->flannIndex->knnSearch(newPointMat, indices, dists, krrt, flann::SearchParams(128));
@@ -204,11 +203,12 @@ void RapidExpTree<T, R>::expandNode(Tree<T, Node<T, R>> *treeToExpand, bool &sol
     newNode = &(treeToExpand->nodes.emplace_back(newPoint, nearest->Root, nearest, Node<T, R>::SamplingDistance, nearest->DistanceToRoot + Node<T, R>::SamplingDistance));
     nearest->Children.push_back(newNode);
   }
+  this->allNodes.push_back(newNode);
 
   // add the point to flann
-  flann::Matrix<float> pointToAdd{new float[2], 1, 2};
-  flann::Matrix<float> refPoint{new float[2], 1, 2};
-  for (int i{0}; i < 2; ++i) {
+  flann::Matrix<float> pointToAdd{new float[PROBLEM_DIMENSION], 1, PROBLEM_DIMENSION};
+  flann::Matrix<float> refPoint{new float[PROBLEM_DIMENSION], 1, PROBLEM_DIMENSION};
+  for (int i{0}; i < PROBLEM_DIMENSION; ++i) {
     pointToAdd[0][i] = newPoint[i];
     refPoint[0][i] = newPoint[i];
   }
@@ -237,7 +237,7 @@ void RapidExpTree<T, R>::expandNode(Tree<T, Node<T, R>> *treeToExpand, bool &sol
       Tree<T, Node<T, R>> *to{treeToExpand->GetId() < neighbor.ExpandedRoot->GetId() ? treeToExpand : neighbor.ExpandedRoot};
       Tree<T, Node<T, R>> *from{treeToExpand->GetId() < neighbor.ExpandedRoot->GetId() ? neighbor.ExpandedRoot : treeToExpand};
 
-      flann::Matrix<float> fromNodes{new float[from->nodes.size() * 2], from->nodes.size(), 2};
+      flann::Matrix<float> fromNodes{new float[from->nodes.size() * PROBLEM_DIMENSION], from->nodes.size(), PROBLEM_DIMENSION};
       int rewirePos{static_cast<int>(to->nodes.size())};
       for (int i{0}; i < from->nodes.size(); ++i) {
         for (int j{0}; j < 2; ++j) {
