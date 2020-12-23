@@ -111,7 +111,20 @@ bool RandGen<T>::randomPointInNormDistance(const Point<T>& center, Point<T>& poi
 
 template<class T>
 void RandGen<T>::randomPointInSpace(Point<T> &point) {
-  point.set(uniSpaceX(rndEng), uniSpaceY(rndEng), 0);
+  T phi;
+
+  point.set(uniSpaceX(rndEng), uniSpaceY(rndEng), uniSpaceZ(rndEng));
+  point.setPosition(3, uniDistAngle(rndEng)); // yaw
+  phi = acos(1 - 2 * uniProb(rndEng)) + M_PI_2;
+  if (uniProb(rndEng) < 0.5) {
+    if (phi < 0) {
+      phi += M_PI;
+    } else {
+      phi -= M_PI;
+    }
+  }
+  point.setPosition(4, phi);  // pitch
+  point.setPosition(5, uniDistAngle(rndEng)); // roll
 }
 
 template<class T>

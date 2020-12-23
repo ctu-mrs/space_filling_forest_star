@@ -1,14 +1,14 @@
 <?xml version="1.0" ?>
-<Problem solver="rrt" optimize="false" smoothing="false" scale="10">
+<Problem solver="sff" optimize="true" smoothing="false" scale="10">
   <ObjectDelimiters standard=" " name="_"/>
   <Robot file=".//models//3D//robot_cylinder_small.obj" is_obj="true"/>
   <Environment collision="0.01">
     <Obstacle file=".//models//3D//building.obj" is_obj="true" position="[0; 0; 0]"/>
   </Environment>
   <Points>
-    <Point coord="[0;0;3.6]"/>
+    <Point coord="[-6;6;3.6]"/>
     <Point coord="[0;0;0.6]"/>
-    <Point coord="[0;0;9.6]"/>
+    <Point coord="[6;-6;9.6]"/>
   </Points>
   <Range autoDetect="false"> 
     <RangeX min="-7" max="7" />
@@ -16,7 +16,7 @@
     <RangeZ min="0" max="14" />
   </Range>
   <Distances dtree="0.5" circum="0.4"/>
-  <Improvements priorityBias="0"/>
+  <Improvements priorityBias="0.95"/>
   <Thresholds standard="5" obstacle="12"/>
   <MaxIterations value="100000"/>
   <Save>
