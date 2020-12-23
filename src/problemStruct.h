@@ -490,7 +490,7 @@ void Solver<T, R>::savePaths(const FileStruct file) {
 
           std::deque<Node<T, R> *> &plan{holder.plan};
           for (int k{0}; k < plan.size() - 1; ++k) {
-            fileStream << plan[k]->Position << DELIMITER_OUT << plan[k+1]->Position / problem.environment.ScaleFactor << "\n";
+            fileStream << plan[k]->Position / problem.environment.ScaleFactor << DELIMITER_OUT << plan[k+1]->Position / problem.environment.ScaleFactor << "\n";
           }
           fileStream << "\n";
         }

@@ -1,2 +1,6 @@
 Forward: -Y
 Up: Z
+
+robot: polomer 1, vyska 1
+robot_small: polomer 0.3, vyska 0.3
+building: 4x4x12

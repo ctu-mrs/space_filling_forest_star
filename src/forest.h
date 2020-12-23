@@ -80,7 +80,10 @@ SpaceForest<T, R>::SpaceForest(Problem<T> &problem) : Solver<T,R>(problem),
       flannIndex->buildIndex();
       for (int i{0}; i < this->trees.size(); ++i) {
         Tree<T, Node<T, R>> &tree{this->trees[i]};
-        for (int j{0}; j < this->trees.size() - 1; ++j) {
+        for (int j{0}; j < this->trees.size(); ++j) {
+          if (i == j) {
+            continue;
+          }
           tree.AddFrontier(this->trees[j].Root);
         }
       }
@@ -357,8 +360,8 @@ bool SpaceForest<T, R>::expandNode(Node<T, R> *expanded, bool &solved) {
     newNode = &(expandedTree->nodes.emplace_back(newPoint, expandedTree, expanded, parentDistance, 
       parentDistance + expanded->DistanceToRoot));
     expanded->Children.push_back(newNode);
-    this->allNodes.push_back(newNode);
   }
+  this->allNodes.push_back(newNode);
   
   // finally add the new node to flann and frontiers
   if (this->usePriority) {

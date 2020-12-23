@@ -116,7 +116,7 @@ void RandGen<T>::randomPointInSpace(Point<T> &point) {
 
 template<class T>
 int RandGen<T>::randomIntMinMax(const int min, const int max) {
-  auto uniInt{std::uniform_int_distribution<int>(min, max)};
+  std::uniform_int_distribution<int> uniInt(min, max);
   return uniInt(rndEng);
 }
 
