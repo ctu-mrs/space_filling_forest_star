@@ -38,6 +38,7 @@ int main(int argc, char *argv[]) {
 void parseFile(const std::string &fileName, Problem<double> &problem) {
   rapidxml::xml_document<> config;
   char *pString;
+  double scale;
   Point<double> pos;
 	std::ifstream fileStream(fileName.c_str());
 	if (!fileStream.good()) {
@@ -84,6 +85,13 @@ void parseFile(const std::string &fileName, Problem<double> &problem) {
     attr = rootNode->first_attribute("smoothing");
     problem.smoothing = (attr != nullptr && !strcmp(attr->value(), "true"));
 
+    attr = rootNode->first_attribute("scale");
+    if (attr == nullptr) {
+      scale = 1;
+    } else {
+      scale = std::stod(attr->value());
+    }
+
     // parse delimiters
     std::string delimiter{" "}, nameDelimiter{"_"};
     rapidxml::xml_node<> *node{rootNode->first_node("ObjectDelimiters")};
@@ -111,7 +119,7 @@ void parseFile(const std::string &fileName, Problem<double> &problem) {
       throw std::invalid_argument("invalid file node in Robot node!");
     }
 
-    problem.environment.Robot = new Obstacle<double>(tempFile.fileName, tempFile.type == Obj);
+    problem.environment.Robot = new Obstacle<double>(tempFile.fileName, tempFile.type == Obj, scale);
 
     // parse Range
     node = rootNode->first_node("Range");
@@ -131,13 +139,13 @@ void parseFile(const std::string &fileName, Problem<double> &problem) {
       if (attr == nullptr) {
         throw invalid_argument("invalid min attribute in rangex node");
       }
-      problem.environment.limits.minX = std::stod(attr->value());
+      problem.environment.limits.minX = scale * std::stod(attr->value());
 
       attr = subNode->first_attribute("max");
       if (attr == nullptr) {
         throw invalid_argument("invalid max attribute in rangex node");
       }
-      problem.environment.limits.maxX = std::stod(attr->value());
+      problem.environment.limits.maxX = scale * std::stod(attr->value());
 
       subNode = node->first_node("RangeY");
       if (subNode == nullptr) {
@@ -147,13 +155,13 @@ void parseFile(const std::string &fileName, Problem<double> &problem) {
       if (attr == nullptr) {
         throw invalid_argument("invalid min attribute in rangey node");
       }
-      problem.environment.limits.minY = std::stod(attr->value());
+      problem.environment.limits.minY = scale * std::stod(attr->value());
 
       attr = subNode->first_attribute("max");
       if (attr == nullptr) {
         throw invalid_argument("invalid max attribute in rangey node");
       }
-      problem.environment.limits.maxY = std::stod(attr->value());
+      problem.environment.limits.maxY = scale * std::stod(attr->value());
 
       subNode = node->first_node("RangeZ");
       if (subNode == nullptr) {
@@ -163,13 +171,13 @@ void parseFile(const std::string &fileName, Problem<double> &problem) {
       if (attr == nullptr) {
         throw invalid_argument("invalid min attribute in rangez node");
       }
-      problem.environment.limits.minZ = std::stod(attr->value());
+      problem.environment.limits.minZ = scale * std::stod(attr->value());
 
       attr = subNode->first_attribute("max");
       if (attr == nullptr) {
         throw invalid_argument("invalid max attribute in rangez node");
       }
-      problem.environment.limits.maxZ = std::stod(attr->value());
+      problem.environment.limits.maxZ = scale * std::stod(attr->value());
     }
 
     // parse environment
@@ -181,7 +189,9 @@ void parseFile(const std::string &fileName, Problem<double> &problem) {
       if (attr == nullptr) {
         throw std::invalid_argument("invalid collision attribute in Environment node!");
       }
-      problem.collisionDist = std::stod(attr->value());
+      problem.collisionDist = scale * std::stod(attr->value());
+
+      problem.environment.ScaleFactor = scale;
       
       subNode = node->first_node("Obstacle");
       if (subNode == nullptr) {
@@ -203,7 +213,7 @@ void parseFile(const std::string &fileName, Problem<double> &problem) {
         }
 
         Obstacle<double> &obst{problem.environment.Obstacles.emplace_back(file.fileName, 
-          file.type == Obj, pos)};
+          file.type == Obj, pos, scale)};
 
         if (problem.autoRange) {
           problem.environment.processLimits(obst.getRange());
@@ -228,7 +238,7 @@ void parseFile(const std::string &fileName, Problem<double> &problem) {
         if (attr == nullptr) {
           throw std::invalid_argument("invalid coord attribute in Point node!");
         }
-        problem.roots.emplace_back(attr->value());
+        problem.roots.emplace_back(attr->value(), scale);
 
         subNode = subNode->next_sibling();
         ++numPoints;
@@ -246,7 +256,7 @@ void parseFile(const std::string &fileName, Problem<double> &problem) {
       if (attr == nullptr) {
         throw std::invalid_argument("invalid coord attribute in Goal node!");
       }
-      problem.goal = Point<double>(attr->value());
+      problem.goal = Point<double>(attr->value(), scale);
     }
 
     // parse Distances
@@ -258,13 +268,13 @@ void parseFile(const std::string &fileName, Problem<double> &problem) {
     if (attr == nullptr) {
       throw std::invalid_argument("invalid dtree attribute in Distances node!");
     }
-    problem.distTree = std::stod(attr->value());
+    problem.distTree = scale * std::stod(attr->value());
     
     attr = node->first_attribute("circum");
     if (attr == nullptr) {
       throw std::invalid_argument("invalid circum attribute in Distances node!");
     }
-    Node<double, Point<double>>::SamplingDistance = std::stod(attr->value());
+    Node<double, Point<double>>::SamplingDistance = scale * std::stod(attr->value());
 
     // improvements
     node = rootNode->first_node("Improvements");

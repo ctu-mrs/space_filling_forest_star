@@ -32,6 +32,7 @@ class Environment {
     Obstacle<T> *Robot;
     Range<T> limits{__DBL_MAX__, -__DBL_MAX__, __DBL_MAX__, -__DBL_MAX__, __DBL_MAX__, -__DBL_MAX__};
     bool HasMap{true};
+    T ScaleFactor;
 
     Environment() : Robot{nullptr} {
     }
@@ -61,12 +62,10 @@ class Obstacle {
     inline static std::string NameDelimiter = "_";
 
     Point<T> Position;
-    Obstacle() {
+    Obstacle() {}
 
-    }
-
-    Obstacle(const std::string fileName, const bool isObj, const Point<T> position);
-    Obstacle(const std::string fileName, const bool isObj);
+    Obstacle(const std::string fileName, const bool isObj, const Point<T> position, const T scaleFactor);
+    Obstacle(const std::string fileName, const bool isObj, const T scaleFactor);
 
     virtual ~Obstacle();
     void ParseOBJFile(const std::string fileName);
@@ -85,6 +84,7 @@ class Obstacle {
     std::vector<Triangle<T>> faces;
     RAPID_model *rapidModel = NULL;
     Range<T> localRange{__DBL_MAX__, -__DBL_MAX__, __DBL_MAX__, -__DBL_MAX__, __DBL_MAX__, -__DBL_MAX__};
+    T scale{1};
     inline static int rapidId = 0;
     inline static double eyeRotation[3][3] = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}}; 
 
@@ -93,12 +93,12 @@ class Obstacle {
 };
 
 template <class T>
-Obstacle<T>::Obstacle(const std::string fileName, const bool isObj) : Obstacle<T>(fileName, isObj, Point<T>()) {
+Obstacle<T>::Obstacle(const std::string fileName, const bool isObj, const T scaleFactor) : Obstacle<T>(fileName, isObj, Point<T>(), scaleFactor) {
 
 }
 
 template <class T>
-Obstacle<T>::Obstacle(const std::string fileName, const bool isObj, const Point<T> position) : Position{position} {
+Obstacle<T>::Obstacle(const std::string fileName, const bool isObj, const Point<T> position, const T scaleFactor) : Position{position}, scale{scaleFactor} {
   this->rapidModel = new RAPID_model();
   this->rapidModel->BeginModel();
 
@@ -196,6 +196,11 @@ void Obstacle<T>::ParseMapFile(const std::string fileName) {
 
 template <class T>
 void Obstacle<T>::addPoint(int objId, T coords[3]) {
+  // scale
+  for (int i{0}; i < 3; ++i) {
+    coords[i] *= scale;
+  }
+
   this->facePoints.emplace_back(coords[0], coords[1], coords[2]);
   localRange.minX = MIN(localRange.minX, coords[0]);
   localRange.maxX = MAX(localRange.maxX, coords[0]);

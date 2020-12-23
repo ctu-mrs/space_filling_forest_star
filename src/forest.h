@@ -60,6 +60,7 @@ SpaceForest<T, R>::SpaceForest(Problem<T> &problem) : Solver<T,R>(problem),
     for (int j{0}; j < this->problem.roots.size(); ++j) {
       Tree<T, Node<T, R>> &tree{this->trees.emplace_back()};
       Node<T, R> &node{tree.nodes.emplace_back(this->problem.roots[j], &tree, nullptr, 0, 0)};
+      this->allNodes.push_back(&node);
       tree.Root = &node;
       flann::Matrix<float> rootMat{new float[1 * PROBLEM_DIMENSION], 1, PROBLEM_DIMENSION};
       frontier.push_back(&node);
@@ -90,6 +91,7 @@ SpaceForest<T, R>::SpaceForest(Problem<T> &problem) : Solver<T,R>(problem),
     if (this->problem.hasGoal) {
       Tree<T, Node<T, R>> &tree{this->trees.emplace_back()};
       Node<T, R> &node{tree.nodes.emplace_back(this->problem.goal, &tree, nullptr, 0, 0)};
+      this->allNodes.push_back(&node);
       flann::Matrix<float> rootMat{new float[1 * PROBLEM_DIMENSION], 1, PROBLEM_DIMENSION};
       for (int i{0}; i < PROBLEM_DIMENSION; ++i) {
         rootMat[0][i] = this->problem.goal[i];
@@ -150,7 +152,7 @@ void SpaceForest<T, R>::Solve() {
     }
 
     bool expandResult{true};
-    for (int i{0}; i < Node<T,R>::ThresholdMisses && expandResult && iter <= this->problem.maxIterations; ++i) {
+    for (int i{0}; i < Node<T,R>::ThresholdMisses && expandResult && iter < this->problem.maxIterations; ++i) {
       ++iter;
       expandResult &= expandNode(nodeToExpand, solved);
     }
@@ -355,6 +357,7 @@ bool SpaceForest<T, R>::expandNode(Node<T, R> *expanded, bool &solved) {
     newNode = &(expandedTree->nodes.emplace_back(newPoint, expandedTree, expanded, parentDistance, 
       parentDistance + expanded->DistanceToRoot));
     expanded->Children.push_back(newNode);
+    this->allNodes.push_back(newNode);
   }
   
   // finally add the new node to flann and frontiers
@@ -528,15 +531,14 @@ void SpaceForest<T, R>::saveFrontiers(const FileStruct file) {
         for (int i{0}; i < this->trees.size(); ++i) {
           for (auto heap : this->trees[i].frontiers) {
             for (Node<T, R> *node : *(heap.getHeapVector())) {
-              fileStream << "v" << DELIMITER_OUT << node->Position << "\n";
+              fileStream << "v" << DELIMITER_OUT << node->Position / this->problem.environment.ScaleFactor << "\n";
             }
-
             break;  // all nodes are in all heaps, so printing the first heap is sufficient
           }
         }
       } else {
         for (Node <T, R> *node : this->frontier) {
-          fileStream << "v" << DELIMITER_OUT << node->Position << "\n";
+          fileStream << "v" << DELIMITER_OUT << node->Position / this->problem.environment.ScaleFactor << "\n";
         }
       }
     } else if (file.type == Map) {
@@ -544,7 +546,7 @@ void SpaceForest<T, R>::saveFrontiers(const FileStruct file) {
         for (int i{0}; i < this->trees.size(); ++i) {
           for (auto heap : this->trees[i].frontiers) {
             for (Node<T, R> *node : *(heap.getHeapVector())) {
-              fileStream << node->Position << DELIMITER_OUT << "1\n"; // the one in the end is just for plotting purposes
+              fileStream << node->Position / this->problem.environment.ScaleFactor << DELIMITER_OUT << "1\n"; // the one in the end is just for plotting purposes
             }
 
             break;  // all nodes are in all heaps, so printing out the first heap is sufficient
@@ -552,7 +554,7 @@ void SpaceForest<T, R>::saveFrontiers(const FileStruct file) {
         }
       } else {
         for (Node<T, R> *node : this->frontier) {
-          fileStream << node->Position << DELIMITER_OUT << "1\n";
+          fileStream << node->Position / this->problem.environment.ScaleFactor << DELIMITER_OUT << "1\n";
         }
       }
     } else {

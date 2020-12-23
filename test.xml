@@ -1,0 +1,29 @@
+<?xml version="1.0" ?>
+<Problem solver="sff" optimize="false" smoothing="false" scale="10">
+  <ObjectDelimiters standard=" " name="_"/>
+  <Robot file=".//models//3D//robot_cylinder.obj" is_obj="true"/>
+  <Environment collision="0.1">
+    <Obstacle file=".//models//3D//building.obj" is_obj="true" position="[0; 0; 0]"/>
+  </Environment>
+  <Points>
+    <Point coord="[5.5;5.5;5]"/>
+    <Point coord="[-5.5;-5.5;10]"/>
+    <Point coord="[-5.9;5.2;10]"/>
+  </Points>
+  <Range autoDetect="false"> 
+    <RangeX min="-7" max="7" />
+    <RangeY min="-7" max="7" />
+    <RangeZ min="0" max="14" />
+  </Range>
+  <Distances dtree="0.5" circum="0.4"/>
+  <Improvements priorityBias="0.95"/>
+  <Thresholds standard="5" obstacle="12"/>
+  <MaxIterations value="100000"/>
+  <Save>
+    <Goals file="output//goals.obj" is_obj="true" />
+    <Params file="output//params.csv" id="sff_3D"/>
+    <TSP file="output//tsp.tsp"/>
+    <Tree file="output//tree.obj" is_obj="true" everyIteration="10" />
+    <RawPath file="output//rawPath.obj" is_obj="true" />
+  </Save>
+</Problem>

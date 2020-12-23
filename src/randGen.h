@@ -82,7 +82,7 @@ bool RandGen<T>::randomPointInDistance(const Point<T>& center, Point<T>& point, 
   temp.setPosition(3, uniDistAngle(rndEng)); // yaw
   phi = acos(1 - 2 * uniProb(rndEng)) + M_PI_2;
   if (uniProb(rndEng) < 0.5) {
-    if (phi < M_PI) {
+    if (phi < 0) {
       phi += M_PI;
     } else {
       phi -= M_PI;

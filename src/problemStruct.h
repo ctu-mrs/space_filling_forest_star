@@ -117,6 +117,7 @@ class Solver {
 
     Environment<T> &env;
 
+    std::deque<Node<T, R> *> allNodes;
     std::deque<Tree<T, Node<T, R>>> trees;
     SymmetricMatrix<DistanceHolder<T, Node<T, R>>> neighboringMatrix;
     std::deque<Tree<T, Node<T, R>> *> connectedTrees;
@@ -259,13 +260,13 @@ void Solver<T, R>::saveCities(const FileStruct file) {
       fileStream << "o Points\n";;
       for (int i{0}; i < problem.GetNumRoots(); ++i) { // goal is included
         for (Node<T, R> &node : this->trees[i].nodes){
-          fileStream << "v" << DELIMITER_OUT << node.Position << "\n";
+          fileStream << "v" << DELIMITER_OUT << node.Position / problem.environment.ScaleFactor << "\n";
         }
       }
     } else if (file.type == Map) {
       for (int i{0}; i < problem.GetNumRoots(); ++i) {
         for(Node<T, R> &node : this->trees[i].nodes) {
-          fileStream << node.Position << "\n";
+          fileStream << node.Position / problem.environment.ScaleFactor << "\n";
         }
       }
     } else {
@@ -291,10 +292,9 @@ void Solver<T, R>::saveTrees(const FileStruct file) {
   if (fileStream.is_open()) {
     if (file.type == Obj) {
       fileStream << "o Trees\n";
-      for (int i{0}; i < problem.GetNumRoots(); ++i) {
-        for (Node<T, R> &node : this->trees[i].nodes) {
-          fileStream << "v" << DELIMITER_OUT << node.Position << "\n";
-        }
+      for (int i{0}; i < this->allNodes.size(); ++i) {
+        Point<T> temp{this->allNodes[i]->Position / problem.environment.ScaleFactor};
+        fileStream << "v" << DELIMITER_OUT << temp << "\n";
       }
 
       for (int i{0}; i < this->trees.size(); ++i) {
@@ -308,7 +308,7 @@ void Solver<T, R>::saveTrees(const FileStruct file) {
       for (int i{0}; i < this->trees.size(); ++i) {
         for (Node<T, R> &node : this->trees[i].nodes) {
           if (node.DistanceToRoot != 0) {
-            fileStream << node.Position << DELIMITER_OUT << node.Closest->Position << DELIMITER_OUT << node.Root->GetId() << "\n";
+            fileStream << node.Position / problem.environment.ScaleFactor << DELIMITER_OUT << node.Closest->Position / problem.environment.ScaleFactor << DELIMITER_OUT << node.Root->GetId() << "\n";
           }
         }
       }
@@ -398,7 +398,7 @@ void Solver<T, R>::saveParams(const FileStruct file, const int iterations, const
       for (int j{0}; j < i; ++j) {
         int id1{this->connectedTrees[i]->GetId()};
         int id2{this->connectedTrees[j]->GetId()};
-        fileStream << neighboringMatrix(id1,id2).distance;
+        fileStream << neighboringMatrix(id1,id2).distance / problem.environment.ScaleFactor;
         if (i + 1 != numRoots || j + 1 != i) {
           fileStream << CSV_DELIMITER_2;
         }
@@ -441,7 +441,7 @@ void Solver<T, R>::saveTsp(const FileStruct file) {
       for (int j{0}; j < i; ++j) {
         int id1{this->connectedTrees[i]->GetId()};
         int id2{this->connectedTrees[j]->GetId()};
-        fileStream << neighboringMatrix(id1, id2).distance << TSP_DELIMITER;
+        fileStream << neighboringMatrix(id1, id2).distance / problem.environment.ScaleFactor << TSP_DELIMITER;
       }
       fileStream << "0\n";
     }
@@ -463,10 +463,8 @@ void Solver<T, R>::savePaths(const FileStruct file) {
     int numRoots{this->problem.GetNumRoots()};
     if (file.type == Obj) {
       fileStream << "o Paths\n";
-      for (int i{0}; i < this->trees.size(); ++i) {
-        for (Node<T, R> &node : this->trees[i].nodes) {
-          fileStream << "v" << DELIMITER_OUT << node.Position << "\n";
-        }
+      for (int i{0}; i < this->allNodes.size(); ++i) {
+        fileStream << "v" << DELIMITER_OUT << this->allNodes[i]->Position / problem.environment.ScaleFactor << "\n";
       }
       
       for (int i{0}; i < numRoots; ++i) {
@@ -492,7 +490,7 @@ void Solver<T, R>::savePaths(const FileStruct file) {
 
           std::deque<Node<T, R> *> &plan{holder.plan};
           for (int k{0}; k < plan.size() - 1; ++k) {
-            fileStream << plan[k]->Position << DELIMITER_OUT << plan[k+1]->Position << "\n";
+            fileStream << plan[k]->Position << DELIMITER_OUT << plan[k+1]->Position / problem.environment.ScaleFactor << "\n";
           }
           fileStream << "\n";
         }

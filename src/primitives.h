@@ -94,7 +94,7 @@ class Point {
     Point<T>(T x, T y, T z, T yaw, T pitch, T roll) : coords{x, y, z}, Yaw{yaw}, Pitch{pitch}, Roll{roll} {
     }
 
-    Point<T>(const std::string &s) {
+    Point<T>(const std::string &s, T scale=1) {
       std::regex r("\\[(\\-?[\\d.]+);\\s*(\\-?[\\d.]+);\\s*(\\-?[\\d.]+)\\]");
       std::smatch m;
       std::regex_search(s, m, r);
@@ -102,7 +102,7 @@ class Point {
         throw std::invalid_argument("Unknown format of point");
       }
       for (int i{0}; i < 3; ++i) {
-        coords[i] = std::stod(m[i + 1]);
+        coords[i] = std::stod(m[i + 1]) * scale;
       }
     }
 
@@ -205,6 +205,15 @@ class Point {
             (p1.x() == p2.x() && p1.y() == p2.y() && p1.z() == p2.z() && p1.Yaw == p2.Yaw && p1.Pitch == p2.Pitch && p1.Roll < p2.Roll);
     }
 
+    // scale position (NOT the rotation)
+    friend Point<T> operator/(const Point<T> &p1, const T scale) {
+      Point<T> newPoint{p1};
+      for (int i{0}; i < 3; ++i) {
+        newPoint.coords[i] /= scale;
+      }
+      return newPoint;
+    }
+
     T distance(const Point<T> &other) const {
       T sum{0};
       for (int i{0}; i < 3; ++i) {
@@ -251,7 +260,7 @@ class Point {
 
 template <class T>
 std::ostream& operator<<(std::ostream &out, const Point<T> &p) {
-  return out << p.x() << DELIMITER_OUT << p.y() << DELIMITER_OUT << p.z() << DELIMITER_OUT << p.Yaw << DELIMITER_OUT << p.Pitch << DELIMITER_OUT << p.Roll;
+  return out << p.x() << DELIMITER_OUT << p.y() << DELIMITER_OUT << p.z(); // << DELIMITER_OUT << p.Yaw << DELIMITER_OUT << p.Pitch << DELIMITER_OUT << p.Roll;
 }
 
 template <class T>
@@ -381,26 +390,12 @@ struct Range {
 };
 
 // FLANN FUNCTOR
-class True
-{
-public:
-    static const bool val = true;
-};
-
-class False
-{
-public:
-    static const bool val = false;
-};
-
 template<class T>
 struct D6Distance {
-  typedef False is_kd_tree_distance;
-  typedef True is_vector_space_distance;
+  typedef bool is_kdtree_distance;
 
   typedef T ElementType;
   typedef typename flann::Accumulator<T>::Type ResultType;
-  typedef ResultType CentersType;
 
   template <typename Iterator1, typename Iterator2>
   ResultType operator()(Iterator1 a, Iterator2 b, size_t size, ResultType worst_dist = -1) const {
@@ -418,6 +413,17 @@ struct D6Distance {
     }
     return result;
   }
+
+  template<typename U, typename V>
+	inline ResultType accum_dist(const U& a, const V& b, int part) const
+			{
+		if ( part > 2 ) {
+			ResultType ang_diff = (ResultType)AngleDifference(a, b);
+			return ang_diff * ang_diff;
+		} else {
+			return (a - b) * (a - b);
+		}
+	}
 };
 
 template <class T, class R>
