@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Problem solver="sff" optimize="true" smoothing="false" scale="10">
+<Problem solver="sff" optimize="false" smoothing="false" scale="10">
   <ObjectDelimiters standard=" " name="_"/>
   <Robot file=".//models//3D//robot_cylinder_small.obj" is_obj="true"/>
   <Environment collision="0.01">
@@ -8,7 +8,10 @@
   <Points>
     <Point coord="[-6;6;3.6]"/>
     <Point coord="[0;0;0.6]"/>
+    <Point coord="[0;0;6.6]"/>
     <Point coord="[6;-6;9.6]"/>
+    <Point coord="[0;-6;1]"/>
+    <Point coord="[-6;0;10]"/>
   </Points>
   <Range autoDetect="false"> 
     <RangeX min="-7" max="7" />
@@ -20,10 +23,10 @@
   <Thresholds standard="5" obstacle="12"/>
   <MaxIterations value="100000"/>
   <Save>
-    <Goals file="output//goals.obj" is_obj="true" />
+    <Goals file="output//goals.tri" is_obj="false" />
     <Params file="output//params.csv" id="sff_3D"/>
     <TSP file="output//tsp.tsp"/>
-    <Tree file="output//tree.obj" is_obj="true" everyIteration="10" />
-    <RawPath file="output//rawPath.obj" is_obj="true" />
+    <Tree file="output//tree5_normal_building.tri" is_obj="false" everyIteration="0" />
+    <RawPath file="output//rawPath5_normal_building.tri" is_obj="false" />
   </Save>
 </Problem>

@@ -325,7 +325,7 @@ void parseFile(const std::string &fileName, Problem<double> &problem) {
         problem.fileNames[SaveTree] = tempFile;
 
         attr = subNode->first_attribute("everyIteration");
-        if (attr != nullptr || std::stoi(attr->value()) != 0) {
+        if (attr != nullptr && std::stoi(attr->value()) != 0) {
           problem.saveOptions = problem.saveOptions | SaveConcurrent;
           problem.saveTreeIter = std::stoi(attr->value());
         }
@@ -366,7 +366,7 @@ void parseFile(const std::string &fileName, Problem<double> &problem) {
         problem.fileNames[SaveFrontiers] = tempFile;
 
         attr = subNode->first_attribute("everyIteration");
-        if (attr != nullptr || std::stoi(attr->value()) != 0) {
+        if (attr != nullptr && std::stoi(attr->value()) != 0) {
           problem.saveOptions = problem.saveOptions | SaveConcurrent;
           problem.saveFrontiersIter = std::stoi(attr->value());
         }

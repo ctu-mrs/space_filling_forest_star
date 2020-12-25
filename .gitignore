@@ -4,3 +4,4 @@ release
 obj
 .vscode
 lib/*
+scripts/*
