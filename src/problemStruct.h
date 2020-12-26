@@ -36,7 +36,8 @@ enum SaveOptions {
 
 enum SolverType{
   SFF,
-  RRT
+  RRT,
+  Lazy
 };
 
 template<class T>

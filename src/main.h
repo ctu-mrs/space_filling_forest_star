@@ -24,6 +24,7 @@
 #include "problemStruct.h"
 #include "forest.h"
 #include "rrt.h"
+#include "lazy.h"
 
 using namespace std;
 using namespace rapidxml;

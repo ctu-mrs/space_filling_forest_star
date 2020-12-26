@@ -26,6 +26,8 @@ int main(int argc, char *argv[]) {
     solver = std::make_unique<SpaceForest<double, Point<double>>>(problem);  
   } else if (problem.solver == RRT) {
     solver = std::make_unique<RapidExpTree<double, Point<double>>>(problem);
+  } else if (problem.solver == Lazy) { 
+    solver = std::make_unique<LazyTSP<double, Point<double>>>(problem);
   } else {
     throw std::string("Not implemented!");
   }
@@ -72,6 +74,8 @@ void parseFile(const std::string &fileName, Problem<double> &problem) {
       problem.solver = SFF;
     } else if (!strcmp(attr->value(), "rrt")) {
       problem.solver = RRT;
+    } else if (!strcmp(attr->value(), "lazy")) {
+      problem.solver = Lazy;
     } else {
       throw std::invalid_argument("unknown solver type in Problem node, use either sff or rrt");
     }
