@@ -186,6 +186,7 @@ void LazyTSP<T,R>::runRRT(DistanceHolder<T, Node<T, R>> *edge) {
     rrtTree->flannIndex->knnSearch(rndPointMat, indices, dists, 1, flann::SearchParams(128));
     delete[] rndPointMat.ptr();
     Node<T,R> &neighbor{rrtTree->nodes[indices[0][0]]};
+    Node<T,R> *nearest{&neighbor};
     
     // get point in this direction, check for collisions
     newPoint = neighbor.Position.getStateInDistance(rndPoint, Node<T, R>::SamplingDistance);
@@ -193,8 +194,57 @@ void LazyTSP<T,R>::runRRT(DistanceHolder<T, Node<T, R>> *edge) {
       continue;    
     }
 
-    // add to the tree
-    newNode = &(rrtTree->nodes.emplace_back(newPoint, rrtTree, &neighbor, Node<T, R>::SamplingDistance, neighbor.DistanceToRoot + Node<T, R>::SamplingDistance, iter));
+    // rrt star
+    if (this->optimize) {
+      T bestDist{newPoint.distance(nearest->Position) + nearest->DistanceToRoot};
+      double krrt{2 * M_E * log10(rrtTree->nodes.size() + 1)};
+      indices.clear();
+      dists.clear();
+
+      flann::Matrix<float> newPointMat{new float[PROBLEM_DIMENSION], 1, PROBLEM_DIMENSION};
+      for (int i{0}; i < PROBLEM_DIMENSION; ++i) {
+        newPointMat[0][i] = newPoint[i];
+      }
+      rrtTree->flannIndex->knnSearch(newPointMat, indices, dists, krrt, flann::SearchParams(128));
+
+      std::vector<int> &indRow{indices[0]};
+      for (int &ind : indRow) {
+        Node<T,R> &neighbor{rrtTree->nodes[ind]};
+        T neighDist{newPoint.distance(neighbor.Position) + neighbor.DistanceToRoot};
+        if (neighDist < bestDist - TOLERANCE && this->isPathFree(newPoint, neighbor.Position)) {
+          bestDist = neighDist;
+          nearest = &neighbor;
+        }
+      }
+
+      newNode = &(rrtTree->nodes.emplace_back(newPoint, rrtTree, nearest, nearest->Position.distance(newPoint), bestDist, iter));
+      nearest->Children.push_back(newNode);
+
+      for (int &ind : indRow) {
+        Node<T,R> &neighbor{rrtTree->nodes[ind]}; // offset goal node
+        T newPointDist{neighbor.Position.distance(newPoint)};
+        T proposedDist{bestDist + newPointDist};
+        if (proposedDist < neighbor.DistanceToRoot - TOLERANCE && this->isPathFree(neighbor.Position, newPoint)) {
+          // rewire
+          std::deque<Node<T, R> *> &children{neighbor.Closest->Children};
+          auto iter{find(children.begin(), children.end(), &neighbor)};
+          if (iter == children.end()) {
+            std::cout << "Fatal error: Node not in children\n";
+            exit(1);
+          }
+          neighbor.Closest->Children.erase(iter);
+          neighbor.Closest = newNode;
+          neighbor.Root = newNode->Root;
+          neighbor.ExpandedRoot = newNode->ExpandedRoot;
+          neighbor.DistanceToClosest = newPointDist;
+          neighbor.DistanceToRoot = proposedDist;
+          newNode->Children.push_back(&neighbor);
+        }
+      }
+    } else {
+      newNode = &(rrtTree->nodes.emplace_back(newPoint, rrtTree, nearest, Node<T, R>::SamplingDistance, nearest->DistanceToRoot + Node<T, R>::SamplingDistance, iter));
+      nearest->Children.push_back(newNode);
+    }
     this->allNodes.push_back(newNode);
 
     // add to flann
