@@ -674,9 +674,10 @@ struct PathNode {
 
 int parseString(std::string &inp, std::string &outp1, std::string &outp2, std::string &delimiter) {
   size_t pos = inp.find(delimiter);
-  int miss = 1;
+  int delimSize{delimiter.size()};
+  int miss{1};
   if (pos != std::string::npos) {
-    while (inp[pos + miss] == delimiter[0]) {
+    while (inp[pos + miss] == delimiter[miss]) {
       ++miss;
     }
     outp1 = inp.substr(0, pos);

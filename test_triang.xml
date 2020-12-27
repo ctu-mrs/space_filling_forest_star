@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Problem solver="sff" optimize="false" smoothing="false" scale="10">
+<Problem solver="lazy" optimize="true" smoothing="false" scale="10">
   <ObjectDelimiters standard=" " name="_"/>
   <Robot file=".//models//3D//robot_cylinder_small.obj" is_obj="true"/>
   <Environment collision="0.01">
@@ -27,6 +27,6 @@
     <Params file="output//params.csv" id="sff_3D_triang"/>
     <TSP file="output//tsp.tsp"/>
     <Tree file="output//tree5_normal.tri" is_obj="false" everyIteration="0" />
-    <RawPath file="output//rawPath5_normal.tri" is_obj="false" />
+    <RawPath file="output//rawPath.obj" is_obj="true" />
   </Save>
 </Problem>

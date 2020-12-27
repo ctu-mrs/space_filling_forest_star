@@ -5,3 +5,7 @@ obj
 .vscode
 lib/*
 scripts/*
+tempTsp.result
+output.log
+tempTsp.tsp
+results/*

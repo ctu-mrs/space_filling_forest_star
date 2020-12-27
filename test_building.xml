@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Problem solver="sff" optimize="false" smoothing="false" scale="10">
+<Problem solver="lazy" optimize="false" smoothing="false" scale="10">
   <ObjectDelimiters standard=" " name="_"/>
   <Robot file=".//models//3D//robot_cylinder_small.obj" is_obj="true"/>
   <Environment collision="0.01">

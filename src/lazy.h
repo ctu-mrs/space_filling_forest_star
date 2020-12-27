@@ -41,6 +41,9 @@ class LazyTSP : public Solver<T, R> {
 
     void getPaths() override;
     void smoothPaths() override;
+    void saveTsp(const FileStruct file) override;
+    void savePaths(const FileStruct file, const std::deque<std::tuple<int,int>> &selectedPaths);
+    void saveParams(const FileStruct file, const int iterations, const bool solved, const std::chrono::duration<double> elapsedTime, const std::deque<std::tuple<int,int>> &selectedEdges);
 };
 
 template <class T, class R>
@@ -70,6 +73,7 @@ template <class T, class R>
 void LazyTSP<T, R>::Solve() {
   T prevDist{-1}, newDist{0};
   std::string resultLine;
+  std::deque<std::tuple<int, int>> selectedEdges;
 
   auto startingTime{std::chrono::high_resolution_clock::now()};
 
@@ -80,8 +84,7 @@ void LazyTSP<T, R>::Solve() {
   bool solved{false};
   int iter{0};
   while (!solved && iter != this->problem.maxIterations) {
-    std::deque<std::tuple<int, int>> selectedEdges;
-    
+    selectedEdges.clear();
     ++iter;
     prevDist = newDist;
 
@@ -113,7 +116,7 @@ void LazyTSP<T, R>::Solve() {
       int first, second;
       std::tie(first, second) = pair;
       DistanceHolder<T, Node<T, R>> &edge{this->neighboringMatrix(first, second)};
-      if (!edge.plan.empty()) {
+      if (edge.plan.empty()) {
         runRRT(&edge);
       } 
       newDist += edge.distance;
@@ -123,8 +126,8 @@ void LazyTSP<T, R>::Solve() {
   }
   auto stopTime{std::chrono::high_resolution_clock::now()};
 
-    if (SaveRaw <= this->problem.saveOptions) {
-    this->savePaths(this->problem.fileNames[SaveRaw]);
+  if (SaveRaw <= this->problem.saveOptions) {
+    this->savePaths(this->problem.fileNames[SaveRaw], selectedEdges);
   }
 
   if (this->problem.smoothing) {
@@ -132,7 +135,7 @@ void LazyTSP<T, R>::Solve() {
   }
 
   if (SaveParams <= this->problem.saveOptions) {
-    this->saveParams(this->problem.fileNames[SaveParams], iter, solved, stopTime - startingTime);
+    this->saveParams(this->problem.fileNames[SaveParams], iter, solved, stopTime - startingTime, selectedEdges);
   }
 
   if (SaveTSP <= this->problem.saveOptions) {
@@ -206,7 +209,7 @@ void LazyTSP<T,R>::runRRT(DistanceHolder<T, Node<T, R>> *edge) {
     T goalDistance{goal->Position.distance(newNode->Position)};
     if (goalDistance < this->treeDistance) {
       solved = true;
-      edge->distance = goalDistance;
+      edge->distance = goalDistance + newNode->DistanceToRoot;
       
       // fill-in plan
       edge->plan.push_front(goal);
@@ -232,11 +235,136 @@ void LazyTSP<T,R>::processResults(std::string &line, std::deque<std::tuple<int,i
 
   parseString(line, parsedPart, line, resultDelimiter);
   int prevPoint{std::stoi(parsedPart)};
-  for (int i{1}; i < numRoots; ++i) {
+  for (int i{0}; i < numRoots; ++i) {
     parseString(line, parsedPart, line, resultDelimiter);
     int actPoint{std::stoi(parsedPart)};
     edgePairs.push_back(std::tuple<int, int>(prevPoint, actPoint));
     prevPoint = actPoint;
+  }
+}
+
+template <class T, class R>
+void LazyTSP<T, R>::saveTsp(const FileStruct file) {
+  std::cout << "Saving TSP file\n";
+  std::ofstream fileStream{file.fileName.c_str()};
+  if (!fileStream.good()) {
+    std::cout << "Cannot create file at: " << file.fileName << "\n";
+    return;
+  }
+
+  if (fileStream.is_open()) {
+    fileStream << "NAME: " << this->problem.id << "\n";
+    fileStream << "COMMENT:\n";
+    fileStream << "TYPE: TSP\n";
+    fileStream << "DIMENSION: " << numRoots << "\n";
+    fileStream << "EDGE_WEIGHT_TYPE : EXPLICIT\n";
+    fileStream << "EDGE_WEIGHT_FORMAT : LOWER_DIAG_ROW\n";
+
+    fileStream << "EDGE_WEIGHT_SECTION\n";
+    for (int i{0}; i < numRoots; ++i) {
+      for (int j{0}; j < i; ++j) {
+        fileStream << this->neighboringMatrix(i, j).distance / this->problem.environment.ScaleFactor << TSP_DELIMITER;
+      }
+      fileStream << "0\n";
+    }
+  } else {
+    std::cout << "Cannot open file at: " << file.fileName << "\n";
+  }
+}
+
+template <class T, class R>
+void LazyTSP<T, R>::savePaths(const FileStruct file, const std::deque<std::tuple<int,int>> &selectedPaths) {
+  std::cout << "Saving paths\n";
+  std::ofstream fileStream{file.fileName.c_str()};
+  if (!fileStream.good()) {
+    std::cout << "Cannot create file at: " << file.fileName << "\n";
+    return;
+  }
+
+  if (fileStream.is_open()) {
+    int numRoots{this->problem.GetNumRoots()};
+    if (file.type == Obj) {
+      fileStream << "o Paths\n";
+      for (int i{0}; i < this->allNodes.size(); ++i) {
+        Point<T> temp{this->allNodes[i]->Position / this->problem.environment.ScaleFactor};
+        fileStream << "v" << DELIMITER_OUT;
+        temp.printPosOnly(fileStream);
+        fileStream << "\n";
+      }
+      
+      for (auto &pair : selectedPaths) {
+        int first, second;
+        std::tie(first, second) = pair;
+        DistanceHolder<T, Node<T, R>> &holder{this->neighboringMatrix(first, second)};
+
+        std::deque<Node<T, R> *> &plan{holder.plan};
+        for (int k{0}; k < plan.size() - 1; ++k) {
+          fileStream << "l" << DELIMITER_OUT << plan[k]->GetId() + 1 << DELIMITER_OUT << plan[k+1]->GetId() + 1 << "\n";
+        }
+      }
+    } else if (file.type == Map) {
+      for (auto &pair : selectedPaths) {
+        int first, second;
+        std::tie(first, second) = pair;
+        DistanceHolder<T, Node<T, R>> &holder{this->neighboringMatrix(first, second)};
+
+        std::deque<Node<T, R> *> &plan{holder.plan};
+        for (int k{0}; k < plan.size() - 1; ++k) {
+          fileStream << plan[k]->Position / this->problem.environment.ScaleFactor << DELIMITER_OUT << plan[k+1]->Position / this->problem.environment.ScaleFactor << "\n";
+        }
+        fileStream << "\n";
+    }
+    } else {
+      throw std::string("Not implemented");
+    }
+
+    fileStream.flush();
+    fileStream.close();
+  } else {
+    std::cout << "Cannot open file at: " << file.fileName << "\n";
+  }  
+}
+
+template<class T, class R>
+void LazyTSP<T, R>::saveParams(const FileStruct file, const int iterations, const bool solved, const std::chrono::duration<double> elapsedTime, const std::deque<std::tuple<int,int>> &selectedEdges) {
+  std::cout << "Saving parameters\n";
+  std::ofstream fileStream{file.fileName.c_str(), std::ios_base::openmode::_S_app};
+  if (!fileStream.good()) {
+    std::cout << "Cannot create file at: " << file.fileName << "\n";
+    return;
+  }
+
+  if (fileStream.is_open()) {
+    fileStream << this->problem.id << CSV_DELIMITER;
+    fileStream << this->problem.iteration << CSV_DELIMITER;
+    fileStream << iterations << CSV_DELIMITER;
+    fileStream << (solved ? "solved" : "unsolved") << CSV_DELIMITER;
+    fileStream << "[";
+    int iter{0};
+    for (auto &pair : selectedEdges) {
+      ++iter;
+      int first, second;
+      std::tie(first, second) = pair;
+      fileStream << first;
+      if (iter != numRoots) {
+        fileStream << CSV_DELIMITER_2;
+      }
+    }
+    fileStream << "]" << CSV_DELIMITER << "[";
+    iter = 0;
+    for (auto &pair : selectedEdges) {
+      ++iter;
+      int first, second;
+      std::tie(first, second) = pair;
+      fileStream << this->neighboringMatrix(first,second).distance / this->problem.environment.ScaleFactor;
+      if (iter != numRoots) {
+        fileStream << CSV_DELIMITER_2;
+      }
+    }
+    fileStream << "]" << CSV_DELIMITER;
+    fileStream << elapsedTime.count() << "\n";
+  } else {
+    std::cout << "Cannot open file at: " << file.fileName << "\n";
   }
 }
 
