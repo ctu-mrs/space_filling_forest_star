@@ -73,6 +73,11 @@ template <class T, class R> T AngleDifference(T a1, R a2);
 template <class T> T Distance(Node<T> &node1, Node<T> &ref);
 template <class T> T StarDistance(Node<T> &node1, Node<T> &ref);
 
+enum Dimensions {
+  D2,
+  D3
+};
+
 template <typename T> 
 int sgn(T val) {
     return (T(0) < val) - (val < T(0));

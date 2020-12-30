@@ -1,0 +1,27 @@
+<?xml version="1.0" ?>
+<Problem solver="lazy" optimize="true" smoothing="false" dim="2D">
+  <ObjectDelimiters standard=" " name="_"/>
+  <Robot file=".//models//3D//robot_cylinder_small.obj" is_obj="true"/>
+  <Environment collision="0.01">
+    <Obstacle file=".//maps//dense.tri" position="[0; 0;0]"/>
+  </Environment>
+  <Points>
+    <Point coord="[323;22;0]"/>
+    <Point coord="[420;140;0]"/>
+    <Point coord="[595;35;0]"/>
+    <Point coord="[335;203;0]"/>
+    <Point coord="[588;203;0]"/>
+  </Points>
+  <Range autoDetect="true" />
+  <Distances dtree="100" circum="80"/>
+  <Improvements priorityBias="0.95"/>
+  <Thresholds standard="5" obstacle="12"/>
+  <MaxIterations value="100000"/>
+  <Save>
+    <Goals file="output//goals.tri" is_obj="false" />
+    <Params file="output//params.csv" id="sff_2D_dense"/>
+    <TSP file="output//tsp.tsp"/>
+    <Tree file="output//tree5_normal.tri" is_obj="false" everyIteration="0" />
+    <RawPath file="output//rawPath.tri" is_obj="false" />
+  </Save>
+</Problem>

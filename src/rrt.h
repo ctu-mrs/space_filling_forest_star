@@ -130,7 +130,7 @@ void RapidExpTree<T, R>::expandNode(Tree<T, Node<T, R>> *treeToExpand, bool &sol
   if (this->usePriority && this->rnd.randomProbability() <= this->problem.priorityBias) {
     rndPoint = goalNode->Position; 
   } else {
-    this->rnd.randomPointInSpace(rndPoint);  
+    this->rnd.randomPointInSpace(rndPoint, this->problem.dimension);  
   }
   
   // find nearest neighbour

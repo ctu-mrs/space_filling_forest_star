@@ -239,7 +239,7 @@ bool SpaceForest<T, R>::expandNode(Node<T, R> *expanded, bool &solved, const uns
   Point<T> newPoint;
 
   bool result;
-  result = this->rnd.randomPointInDistance(expanded->Position, newPoint, Node<T,R>::SamplingDistance);
+  result = this->rnd.randomPointInDistance(expanded->Position, newPoint, Node<T,R>::SamplingDistance, this->problem.dimension);
 
   if (!result || this->env.Collide(newPoint) || !this->isPathFree(expanded->Position, newPoint)) {     // check limits and collisions
     return true;

@@ -96,6 +96,15 @@ void parseFile(const std::string &fileName, Problem<double> &problem) {
       scale = std::stod(attr->value());
     }
 
+    attr = rootNode->first_attribute("dim");
+    if (attr == nullptr || !strcmp(attr->value(), "3D") || !strcmp(attr->value(), "3d")) {
+      problem.dimension = D3;
+    } else if (!strcmp(attr->value(), "2D") || !strcmp(attr->value(), "2d")) {
+      problem.dimension = D2;
+    } else {
+      throw std::invalid_argument("invalid dim attribute!");
+    }
+
     // parse delimiters
     std::string delimiter{" "}, nameDelimiter{"_"};
     rapidxml::xml_node<> *node{rootNode->first_node("ObjectDelimiters")};

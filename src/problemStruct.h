@@ -43,6 +43,7 @@ enum SolverType{
 template<class T>
 struct Problem {
   int iteration{0};
+  Dimensions dimension{D3};
 
   SolverType solver;
   bool optimal;

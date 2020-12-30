@@ -36,7 +36,7 @@ class LazyTSP : public Solver<T, R> {
     std::deque<Node<T, R>> rootNodes;
     std::deque<Tree<T, Node<T, R>> *> treesToDel;
     
-    void runRRT(DistanceHolder<T, Node<T, R>> *edge);
+    void runRRT(DistanceHolder<T, Node<T, R>> *edge, int &iterations);
     void processResults(std::string &line, std::deque<std::tuple<int,int>> &edgePairs, T &pathLength);
 
     void getPaths() override;
@@ -85,13 +85,12 @@ void LazyTSP<T, R>::Solve() {
   int iter{0};
   while (!solved && iter != this->problem.maxIterations) {
     selectedEdges.clear();
-    ++iter;
     prevDist = newDist;
 
     // run TSP = create file, execute, read output
     this->saveTsp(tempTsp);
     std::string command{PATH_TO_TSP};
-    command.append(" --gui=none --map-type=TSP_FILE --use-path-files-folder=false --use-prm=false --problem=");
+    command.append(" --gui=none --map-type=TSP_FILE --use-path-files-folder=false --use-prm=false --tsp-solver=Concorde --problem=");
     command.append(TEMP_TSP);
     system(command.c_str());
 
@@ -117,7 +116,7 @@ void LazyTSP<T, R>::Solve() {
       std::tie(first, second) = pair;
       DistanceHolder<T, Node<T, R>> &edge{this->neighboringMatrix(first, second)};
       if (edge.plan.empty()) {
-        runRRT(&edge);
+        runRRT(&edge, iter);
       } 
       newDist += edge.distance;
     }
@@ -154,7 +153,7 @@ void LazyTSP<T, R>::smoothPaths() {
 }
 
 template <class T, class R>
-void LazyTSP<T,R>::runRRT(DistanceHolder<T, Node<T, R>> *edge) {
+void LazyTSP<T,R>::runRRT(DistanceHolder<T, Node<T, R>> *edge, int &iterations) {
   Node<T,R> *goal{edge->node2};
   Tree<T, Node<T, R>> *rrtTree{new Tree<T, Node<T,R>>};
   treesToDel.push_back(rrtTree);
@@ -172,10 +171,10 @@ void LazyTSP<T,R>::runRRT(DistanceHolder<T, Node<T, R>> *edge) {
 
   bool solved{false};
   int iter{0};
-  while (iter < this->problem.maxIterations && !solved) {
+  while (iter < numRoots * this->problem.maxIterations && !solved) {
     Point<T> rndPoint, newPoint;
     Node<T,R> *newNode;
-    this->rnd.randomPointInSpace(rndPoint);  // NO PRIORITY BIAS!!!
+    this->rnd.randomPointInSpace(rndPoint, this->problem.dimension);  // NO PRIORITY BIAS!!!
 
     std::vector<std::vector<int>> indices;
     std::vector<std::vector<float>> dists;
@@ -275,6 +274,8 @@ void LazyTSP<T,R>::runRRT(DistanceHolder<T, Node<T, R>> *edge) {
   if (!solved) {
     edge->distance = std::numeric_limits<T>::max();
   }
+
+  iterations += iter;
 }
 
 template <class T, class R>
