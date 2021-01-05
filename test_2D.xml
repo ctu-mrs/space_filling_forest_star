@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Problem solver="lazy" optimize="true" smoothing="false" dim="2D">
   <ObjectDelimiters standard=" " name="_"/>
-  <Robot file=".//models//3D//robot_cylinder_small.obj" is_obj="true"/>
+  <Robot file=".//models//robot_small.obj" is_obj="true"/>
   <Environment collision="0.01">
     <Obstacle file=".//maps//dense.tri" position="[0; 0;0]"/>
   </Environment>

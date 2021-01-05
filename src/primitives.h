@@ -699,7 +699,11 @@ FileStruct prefixFileName(const FileStruct &path, const std::string &insert) {
 	FileStruct retVal{path};
 
 	auto pos{retVal.fileName.find_last_of("//")};
-	retVal.fileName.insert(pos + 1, insert);
+  if (pos != std::string::npos) {
+    retVal.fileName.insert(pos + 1, insert);
+  } else {
+    retVal.fileName.insert(0, insert);
+  }
 
 	return retVal;
 }

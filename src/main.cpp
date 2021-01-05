@@ -17,8 +17,10 @@ int main(int argc, char *argv[]) {
   }
   
   Problem<double> problem;
-  if (argc > 2) {
+  if (argc == 3) {
     problem.iteration = std::stoi(argv[2]);
+  } else if (argc == 4) {
+    problem.tspSolver = argv[3];
   }
   parseFile(std::string(argv[1]), problem);
   std::unique_ptr<Solver<double, Point<double>>> solver;

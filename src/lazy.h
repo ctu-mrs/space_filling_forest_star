@@ -14,7 +14,7 @@
 
 #define TEMP_TSP      "tempTsp.tsp"
 #define TEMP_RESULT   "tempTsp.result"
-#define PATH_TO_TSP   "/home/jarajanos/Documents/obst_tsp/obst_tsp"
+//#define PATH_TO_TSP   "/home/jarajanos/Documents/obst_tsp/obst_tsp"
 
 #include <deque>
 
@@ -83,18 +83,21 @@ void LazyTSP<T, R>::Solve() {
 
   bool solved{false};
   int iter{0};
-  while (!solved && iter != this->problem.maxIterations) {
+  while (!solved && iter != numRoots * this->problem.maxIterations) {
     selectedEdges.clear();
     prevDist = newDist;
 
     // run TSP = create file, execute, read output
-    this->saveTsp(tempTsp);
-    std::string command{PATH_TO_TSP};
+    std::string id{"id_" + std::to_string(this->problem.iteration) + "_"};
+    FileStruct runFile{prefixFileName(tempTsp, id)};
+    this->saveTsp(runFile);
+    std::string command{this->problem.tspSolver};
     command.append(" --gui=none --map-type=TSP_FILE --use-path-files-folder=false --use-prm=false --tsp-solver=Concorde --problem=");
-    command.append(TEMP_TSP);
+    command.append(runFile.fileName);
     system(command.c_str());
 
-    std::ifstream resFile{TEMP_RESULT, std::ios::in};
+    std::string resultName{TEMP_RESULT};
+    std::ifstream resFile{resultName.insert(0, id), std::ios::in};
     if (!resFile.good()) {
       std::cout << "Lazy TSP: result file error";
       return;
@@ -171,7 +174,8 @@ void LazyTSP<T,R>::runRRT(DistanceHolder<T, Node<T, R>> *edge, int &iterations) 
 
   bool solved{false};
   int iter{0};
-  while (iter < numRoots * this->problem.maxIterations && !solved) {
+  while (iter < this->problem.maxIterations && !solved) {
+    ++iter;
     Point<T> rndPoint, newPoint;
     Node<T,R> *newNode;
     this->rnd.randomPointInSpace(rndPoint, this->problem.dimension);  // NO PRIORITY BIAS!!!
