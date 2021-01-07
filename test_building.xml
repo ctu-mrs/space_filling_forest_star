@@ -1,17 +1,16 @@
 <?xml version="1.0" ?>
-<Problem solver="lazy" optimize="false" smoothing="false" scale="10">
+<Problem solver="sff" optimize="true" smoothing="false" scale="10" dim="3D">
   <ObjectDelimiters standard=" " name="_"/>
   <Robot file=".//models//3D//robot_cylinder_small.obj" is_obj="true"/>
   <Environment collision="0.01">
     <Obstacle file=".//models//3D//building.obj" is_obj="true" position="[0; 0; 0]"/>
   </Environment>
   <Points>
-    <Point coord="[-6;6;3.6]"/>
-    <Point coord="[0;0;0.6]"/>
-    <Point coord="[0;0;6.6]"/>
-    <Point coord="[6;-6;9.6]"/>
-    <Point coord="[0;-6;1]"/>
-    <Point coord="[-6;0;10]"/>
+    <Point coord="[-5.376207930019596; -5.338214644384135; 0.7519141368058615]"/>
+    <Point coord="[5.309629695920314; -5.3435510614853206; 2.225339932086428]"/>
+    <Point coord="[-5.445894591081855; 4.942949264187298; 8.034669391216193]"/>
+    <Point coord="[3.4004901456614443; 0.3800196290706541; 10]"/>
+    <Point coord="[0.30319967716688234; 0.057430173261578954; 7]"/>
   </Points>
   <Range autoDetect="false"> 
     <RangeX min="-7" max="7" />
@@ -26,7 +25,7 @@
     <Goals file="output//goals.tri" is_obj="false" />
     <Params file="output//params.csv" id="sff_3D"/>
     <TSP file="output//tsp.tsp"/>
-    <Tree file="output//tree5_normal_building.tri" is_obj="false" everyIteration="0" />
+    <Tree file="output//tree5_normal_building.obj" is_obj="true" everyIteration="0" />
     <RawPath file="output//rawPath5_normal_building.tri" is_obj="false" />
   </Save>
 </Problem>

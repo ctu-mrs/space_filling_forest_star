@@ -20,6 +20,7 @@ int main(int argc, char *argv[]) {
   if (argc == 3) {
     problem.iteration = std::stoi(argv[2]);
   } else if (argc == 4) {
+    problem.iteration = std::stoi(argv[2]);
     problem.tspSolver = argv[3];
   }
   parseFile(std::string(argv[1]), problem);
