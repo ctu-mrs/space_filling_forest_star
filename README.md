@@ -31,6 +31,14 @@ The compiled executable might be executed by calling
 ```
 The iteration-id argument is optional and it is used only for proper file indexing. Structure of the required configuration file is described in the next section. You can also use prepared example files `test_2D.xml`, `test_building.xml` or `test_triang.xml`.
 
+# Input/Output graphic files
+The program accepts standard OBJ files or specialized 2D tri files. It is a plain text file, each row might represent point, line, or triangle:
+ - line in format `x y` is a point
+ - line in format `x1 y1 x2 y2` is a line
+ - line in format `x1 y1 x2 y2 x3 y3` is a triangle
+
+ The program outputs standard OBJ files or specialized 3D tri files (please note the difference). The format is similar to the 2D tri files, however each point is represented by 6 values (position & Euler angles): `x y z yaw pitch roll`. Therefore, each line consists from up to 18 values.
+
 # Structure of the configuration file
 Each file must have precisely one `<Problem />` node. If more nodes are specified, only the first one is processed.
 ***
@@ -263,11 +271,3 @@ Thresholds have effect only for SFF.
 - *Params:* ID of instance and iteration, number of iterations, whether the problem was solved, distances between points and elapsed time
 - *TSP:* File in format accepted by the obst_tsp TSP handler, enables easy additional computation of best TSP path
 - *Frontiers:* Only for SFF based solvers - list of all active nodes
-
-# Input/Output graphic files
-The program accepts standard OBJ files or specialized 2D tri files. It is a plain text file, each row might represent point, line, or triangle:
- - line in format `x y` is a point
- - line in format `x1 y1 x2 y2` is a line
- - line in format `x1 y1 x2 y2 x3 y3` is a triangle
-
- The program outputs standard OBJ files or specialized 3D tri files (please note the difference). The format is similar to the 2D tri files, however each point is represented by 6 values (position & Euler angles): `x y z yaw pitch roll`. Therefore, each line consists from up to 18 values.
