@@ -68,7 +68,8 @@ struct Problem {
   std::map<SaveOptions, FileStruct> fileNames;
   std::string id{ "Solver" };
 
-  std::string tspSolver{ "/home/jarajanos/Documents/obst_tsp/obst_tsp" };
+  std::string tspSolver;
+  std::string tspType;
 
   int GetNumRoots() {
     if (hasGoal) {

@@ -75,9 +75,7 @@ SpaceForest<T, R>::SpaceForest(Problem<T> &problem) : Solver<T,R>(problem),
     }
     delete[] globMat.ptr();
 
-    if (this->usePriority) {
-      flann::Index<D6Distance<float>> *flannIndex{new flann::Index<D6Distance<float>>(globMat, flann::KDTreeIndexParams(4))};
-      flannIndex->buildIndex();
+    if (this->usePriority && !this->problem.hasGoal) {
       for (int i{0}; i < this->trees.size(); ++i) {
         Tree<T, Node<T, R>> &tree{this->trees[i]};
         for (int j{0}; j < this->trees.size(); ++j) {
@@ -87,7 +85,6 @@ SpaceForest<T, R>::SpaceForest(Problem<T> &problem) : Solver<T,R>(problem),
           tree.AddFrontier(this->trees[j].Root);
         }
       }
-      delete flannIndex;
     }
 
     // add goal - it is not expanded
@@ -199,9 +196,14 @@ void SpaceForest<T, R>::Solve() {
     if (!solved) {
       bool connected{maxConnected() == numRoots};
       solved = (!this->problem.hasGoal && emptyFrontier && connected);
-    } 
+    } else {
+      maxConnected(); // update the connected trees to correct params output
+    }
   }
   auto stopTime{std::chrono::high_resolution_clock::now()};
+  if (!solved && !this->problem.hasGoal) {
+    solved = maxConnected() == numRoots;
+  }
 
   if (SaveTree <= this->problem.saveOptions) {
     this->saveTrees(this->problem.fileNames[SaveTree]);

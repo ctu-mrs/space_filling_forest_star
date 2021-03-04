@@ -14,7 +14,6 @@
 
 #define TEMP_TSP      "tempTsp.tsp"
 #define TEMP_RESULT   "tempTsp.result"
-//#define PATH_TO_TSP   "/home/jarajanos/Documents/obst_tsp/obst_tsp"
 
 #include <deque>
 
@@ -92,7 +91,9 @@ void LazyTSP<T, R>::Solve() {
     FileStruct runFile{prefixFileName(tempTsp, id)};
     this->saveTsp(runFile);
     std::string command{this->problem.tspSolver};
-    command.append(" --gui=none --map-type=TSP_FILE --use-path-files-folder=false --use-prm=false --tsp-solver=Concorde --problem=");
+    command.append(" --map-type=TSP_FILE --use-path-files-folder=false --use-prm=false --tsp-solver=");
+    command.append(this->problem.tspType);
+    command.append(" --problem=");
     command.append(runFile.fileName);
     system(command.c_str());
 

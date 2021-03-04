@@ -50,7 +50,7 @@
 #define DEFAULT_DIST_DIV 1
 #define ANGLE_MOVE 0.8
 
-#define PROBLEM_DIMENSION   6
+#define PROBLEM_DIMENSION   static_cast<size_t>(this->problem.dimension)
 
 #define MIN(X, Y) ((X < Y) ? (X) : (Y))
 #define MAX(X, Y) ((X > Y) ? (X) : (Y))
@@ -74,8 +74,8 @@ template <class T> T Distance(Node<T> &node1, Node<T> &ref);
 template <class T> T StarDistance(Node<T> &node1, Node<T> &ref);
 
 enum Dimensions {
-  D2,
-  D3
+  D2 = 2,
+  D3 = 6
 };
 
 template <typename T> 
@@ -679,7 +679,7 @@ struct PathNode {
 
 int parseString(std::string &inp, std::string &outp1, std::string &outp2, std::string &delimiter) {
   size_t pos = inp.find(delimiter);
-  int delimSize{delimiter.size()};
+  int delimSize{static_cast<int>(delimiter.size())};
   int miss{1};
   if (pos != std::string::npos) {
     while (inp[pos + miss] == delimiter[miss]) {

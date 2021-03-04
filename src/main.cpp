@@ -19,9 +19,6 @@ int main(int argc, char *argv[]) {
   Problem<double> problem;
   if (argc == 3) {
     problem.iteration = std::stoi(argv[2]);
-  } else if (argc == 4) {
-    problem.iteration = std::stoi(argv[2]);
-    problem.tspSolver = argv[3];
   }
   parseFile(std::string(argv[1]), problem);
   std::unique_ptr<Solver<double, Point<double>>> solver;
@@ -91,6 +88,9 @@ void parseFile(const std::string &fileName, Problem<double> &problem) {
 
     attr = rootNode->first_attribute("smoothing");
     problem.smoothing = (attr != nullptr && !strcmp(attr->value(), "true"));
+    if (problem.solver == Lazy && problem.smoothing) {
+      throw std::invalid_argument("Lazy-RRT* solver with path smoothing is not implemented, set \"smoothing\" parameter to \"false\"");
+    }
 
     attr = rootNode->first_attribute("scale");
     if (attr == nullptr) {
@@ -124,6 +124,29 @@ void parseFile(const std::string &fileName, Problem<double> &problem) {
         Obstacle<double>::NameDelimiter = attr->value();
       }
     }
+
+    // TSP parameters for Lazy solver
+    node = rootNode->first_node("TSP");
+    if (node == nullptr && problem.solver == Lazy) {
+      throw std::invalid_argument("missing TSP solver parameters for Lazy solver!");
+    } else if (node != nullptr) {
+      if (problem.solver != Lazy) {
+        std::cout << "Warning: TSP solver is called only in Lazy solver algorithm -- defined TSP parameters are redundant and will not be used.\n";
+      }
+      
+      attr = node->first_attribute("path");
+      if (attr == nullptr) {
+        throw std::invalid_argument("invalid path attribute in TSP node!");
+      }
+      problem.tspSolver = attr->value();
+
+      attr = node->first_attribute("type");
+      if (attr == nullptr) {
+        throw std::invalid_argument("invalid type attribute in TSP node!");
+      }
+      problem.tspType = attr->value();
+    }
+
 
     // parse Robot
     node = rootNode->first_node("Robot");
@@ -267,6 +290,11 @@ void parseFile(const std::string &fileName, Problem<double> &problem) {
 
     node = rootNode->first_node("Goal");
     if (node != nullptr) {
+      if (problem.solver == Lazy) {
+        throw std::invalid_argument("single point path planning not defined for Lazy solver (use RRT/RRT* solver instead)!");
+      } else if (problem.roots.size() > 1) {
+        std::cout << "Warning: Multi-source planning with one goal has not been tested!\n";
+      }
       problem.hasGoal = true;
       attr = node->first_attribute("coord");
       if (attr == nullptr) {
@@ -300,8 +328,9 @@ void parseFile(const std::string &fileName, Problem<double> &problem) {
         problem.priorityBias = std::stod(attr->value());
       } 
       if (!problem.hasGoal && problem.priorityBias != 0 && problem.solver == RRT) {
-        std::cout << "Forbidden combination: RRT multigoal solver and priority queue!\n";
-        exit(2);
+        throw std::invalid_argument("Multi-T-RRT with bias is undefined!");
+      } else if (problem.solver == Lazy && problem.priorityBias != 0) {
+        throw std::invalid_argument("priority bias for Lazy solver is not implemented!");
       }
     } 
 
@@ -355,6 +384,9 @@ void parseFile(const std::string &fileName, Problem<double> &problem) {
 
       subNode = node->first_node("SmoothPath");
       if (!getFile(subNode, tempFile, problem.iteration)) {
+        if (problem.smoothing) {
+          throw std::invalid_argument("smoothing is disabled, therefore \"SmoothPath\" parameter might not be defined!");
+        }
         problem.saveOptions = problem.saveOptions | SaveSmooth;
         problem.fileNames[SaveSmooth] = tempFile;
       }
@@ -378,6 +410,9 @@ void parseFile(const std::string &fileName, Problem<double> &problem) {
 
       subNode = node->first_node("Frontiers");
       if (!getFile(subNode, tempFile, problem.iteration)) {
+        if (problem.solver != SFF) {
+          throw std::invalid_argument("frontiers output is defined only for SFF-based solvers!");
+        }
         problem.saveOptions = problem.saveOptions | SaveFrontiers;
         problem.fileNames[SaveFrontiers] = tempFile;
 

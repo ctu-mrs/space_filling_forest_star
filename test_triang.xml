@@ -1,6 +1,7 @@
 <?xml version="1.0" ?>
 <Problem solver="lazy" optimize="true" smoothing="false" scale="10">
   <ObjectDelimiters standard=" " name="_"/>
+  <TSP path="/home/jarajanos/Documents/obst_tsp/obst_tsp" type="Concorde"/>
   <Robot file=".//models//3D//robot_cylinder_small.obj" is_obj="true"/>
   <Environment collision="0.01">
     <Obstacle file=".//models//3D//triang.obj" is_obj="true" position="[0; 0; 0]"/>
@@ -20,7 +21,7 @@
   </Range>
   <Distances dtree="0.5" circum="0.4"/>
   <Improvements priorityBias="0.95"/>
-  <Thresholds standard="5" obstacle="12"/>
+  <Thresholds standard="5"/>
   <MaxIterations value="100000"/>
   <Save>
     <Goals file="output//goals.tri" is_obj="false" />

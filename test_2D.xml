@@ -1,21 +1,21 @@
 <?xml version="1.0" ?>
 <Problem solver="lazy" optimize="true" smoothing="false" dim="2D">
   <ObjectDelimiters standard=" " name="_"/>
+  <TSP path="/home/jarajanos/Documents/obst_tsp/obst_tsp" type="Concorde"/>
   <Robot file=".//models//robot_small.obj" is_obj="true"/>
   <Environment collision="0.01">
     <Obstacle file=".//maps//dense.tri" position="[0; 0;0]"/>
   </Environment>
   <Points>
-    <Point coord="[323;22;0]"/>
-    <Point coord="[420;140;0]"/>
-    <Point coord="[595;35;0]"/>
-    <Point coord="[335;203;0]"/>
-    <Point coord="[588;203;0]"/>
+    <Point coord="[1500; 1600; 0]"/>
+    <Point coord="[100; 100;0]"/>
+    <Point coord="[500; 1700;0]"/>
+    <Point coord="[1440; 330;0]"/>
   </Points>
   <Range autoDetect="true" />
   <Distances dtree="100" circum="80"/>
   <Improvements priorityBias="0.95"/>
-  <Thresholds standard="5" obstacle="12"/>
+  <Thresholds standard="5"/>
   <MaxIterations value="100000"/>
   <Save>
     <Goals file="output//goals.tri" is_obj="false" />
